@@ -214,8 +214,41 @@ function showPopup(config) {
     // Record that popup was shown
     recordPopupShown(config.id, config.rules.frequency);
 
+    // For top_bar with pushContent, add margin to body
+    let bodyMarginCleanup = null;
+    if (config.design?.type === 'top_bar' && config.design?.pushContent !== false) {
+        const position = config.design?.position || 'top';
+        const barHeight = '50px'; // Approximate height of top bar
+
+        // Store original margin
+        const originalMargin = position === 'top'
+            ? document.body.style.marginTop
+            : document.body.style.marginBottom;
+
+        // Apply margin to push content
+        if (position === 'top') {
+            document.body.style.marginTop = barHeight;
+        } else {
+            document.body.style.marginBottom = barHeight;
+        }
+
+        // Cleanup function to restore original margin
+        bodyMarginCleanup = () => {
+            if (position === 'top') {
+                document.body.style.marginTop = originalMargin || '';
+            } else {
+                document.body.style.marginBottom = originalMargin || '';
+            }
+        };
+    }
+
     // Handle close
     const handleClose = () => {
+        // Restore body margin if applicable
+        if (bodyMarginCleanup) {
+            bodyMarginCleanup();
+        }
+
         // Give time for exit animation
         setTimeout(() => {
             destroyPopup(host);
