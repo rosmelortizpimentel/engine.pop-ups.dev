@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggleup - Banner Editor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .sidebar-header .logo {
+            font-size: 20px;
+        }
+
+        /* Sections */
+        .section {
+            border-bottom: 1px solid #333;
+            padding: 12px 16px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Form controls */
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .field input[type="text"],
+        .field input[type="url"],
+        .field select {
+            width: 100%;
+            padding: 8px 10px;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .field-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .field-row .field {
+            flex: 1;
+        }
+
+        /* Color picker */
+        .color-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-field input[type="color"] {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-field input[type="text"] {
+            flex: 1;
+        }
+
+        /* Toggle */
+        .toggle-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toggle-field label {
+            margin-bottom: 0;
+        }
+
+        .toggle {
+            width: 36px;
+            height: 20px;
+            background: #404040;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 150ms;
+        }
+
+        .toggle.active {
+            background: #2196F3;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 150ms;
+        }
+
+        .toggle.active::after {
+            transform: translateX(16px);
+        }
+
+        /* Button editor */
+        .button-item {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .button-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .button-item-header span {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-remove {
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 8px;
+            background: #333;
+            border: 1px dashed #555;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-add:hover {
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+
+        /* Main area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            padding: 12px 16px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .toolbar .btn-execute {
+            background: #2196F3;
+            color: white;
+        }
+
+        .toolbar .btn-execute:hover {
+            background: #1976D2;
+        }
+
+        .toolbar .btn-secondary {
+            background: #333;
+            color: #ccc;
+        }
+
+        .toolbar .btn-secondary:hover {
+            background: #444;
+        }
+
+        .preset-select {
+            padding: 8px 12px;
+            background: #333;
+            border: none;
+            border-radius: 6px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        /* Content area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .json-panel {
+            width: 50%;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .json-panel h3 {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #888;
+            background: #1a1a1a;
+        }
+
+        .json-panel textarea {
+            flex: 1;
+            background: #0f0f0f;
+            border: none;
+            color: #e0e0e0;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            resize: none;
+        }
+
+        .json-panel textarea:focus {
+            outline: none;
+        }
+
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-panel h3 {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #888;
+            background: #1a1a1a;
+        }
+
+        .preview-area {
+            flex: 1;
+            background: #f5f5f5;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4444;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span class="logo">🎨</span>
+                <h1>Banner Editor</h1>
+            </div>
+
+            <!-- Layout -->
+            <div class="section">
+                <div class="section-title">📐 Layout</div>
+                <div class="field-row">
+                    <div class="field">
+                        <label>Posición</label>
+                        <select id="cfg-position" onchange="updateFromForm()">
+                            <option value="top">Arriba</option>
+                            <option value="bottom">Abajo</option>
+                        </select>
+                    </div>
+                    <div class="field toggle-field">
+                        <label>Fijo</label>
+                        <div class="toggle active" id="cfg-fixed" onclick="toggleField(this, 'fixed')"></div>
+                    </div>
+                </div>
+                <div class="field toggle-field">
+                    <label>Mostrar botón cerrar</label>
+                    <div class="toggle active" id="cfg-showCloseButton" onclick="toggleField(this, 'showCloseButton')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="section">
+                <div class="section-title">📝 Contenido</div>
+                <div class="field">
+                    <label>Título</label>
+                    <input type="text" id="cfg-headline-text" oninput="updateFromForm()"
+                        placeholder="Ej: ¡Oferta especial!">
+                </div>
+                <div class="field color-field">
+                    <input type="color" id="cfg-headline-color" value="#1a1a1a" onchange="updateFromForm()">
+                    <input type="text" id="cfg-headline-color-text" value="#1a1a1a"
+                        oninput="syncColorFromText(this, 'cfg-headline-color')">
+                </div>
+                <div class="field">
+                    <label>Subtítulo</label>
+                    <input type="text" id="cfg-body-text" oninput="updateFromForm()"
+                        placeholder="Ej: Aprovecha antes que termine">
+                </div>
+                <div class="field color-field">
+                    <input type="color" id="cfg-body-color" value="#666666" onchange="updateFromForm()">
+                    <input type="text" id="cfg-body-color-text" value="#666666"
+                        oninput="syncColorFromText(this, 'cfg-body-color')">
+                </div>
+            </div>
+
+            <!-- Image -->
+            <div class="section">
+                <div class="section-title">🖼️ Imagen</div>
+                <div class="field">
+                    <label>URL de imagen</label>
+                    <input type="url" id="cfg-image-url" oninput="updateFromForm()" placeholder="https://...">
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label>Posición</label>
+                        <select id="cfg-image-position" onchange="updateFromForm()">
+                            <option value="left">Izquierda</option>
+                            <option value="right">Derecha</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Alto</label>
+                        <input type="text" id="cfg-image-height" value="24px" oninput="updateFromForm()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="section">
+                <div class="section-title">🔘 Botones (máx 3)</div>
+                <div id="buttons-container"></div>
+                <button class="btn-add" onclick="addButton()">+ Agregar botón</button>
+            </div>
+
+            <!-- Style -->
+            <div class="section">
+                <div class="section-title">🎨 Estilos</div>
+                <div class="field">
+                    <label>Color de fondo</label>
+                    <div class="color-field">
+                        <input type="color" id="cfg-bg-color" value="#ffffff" onchange="updateFromForm()">
+                        <input type="text" id="cfg-bg-color-text" value="#ffffff"
+                            oninput="syncColorFromText(this, 'cfg-bg-color')">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Font Family</label>
+                    <input type="text" id="cfg-font-family" oninput="updateFromForm()" placeholder="Ej: Lato, Arial">
+                </div>
+                <div class="field">
+                    <label>Border Radius</label>
+                    <input type="text" id="cfg-border-radius" value="0px" oninput="updateFromForm()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+            <div class="toolbar">
+                <button class="btn-execute" onclick="executePopup()">▶ Ejecutar</button>
+                <button class="btn-secondary" onclick="resetEditor()">↺ Reset</button>
+                <select class="preset-select" id="preset-select" onchange="loadPreset(this.value)">
+                    <option value="">Cargar preset...</option>
+                    <option value="simple">Simple</option>
+                    <option value="withImage">Con Imagen</option>
+                    <option value="multiButton">Multi-Botón</option>
+                    <option value="bottom">Posición Abajo</option>
+                    <option value="noClose">Sin Cerrar</option>
+                    <option value="niubizBranding">🎨 Niubiz</option>
+                </select>
+            </div>
+
+            <div class="content-area">
+                <div class="json-panel">
+                    <h3>📄 JSON</h3>
+                    <textarea id="json-editor" oninput="updateFromJson()"></textarea>
+                </div>
+                <div class="preview-panel">
+                    <h3>👁 Preview</h3>
+                    <div class="preview-area" id="preview-area"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-toast" id="error-toast"></div>
+
+    <script>
+        // Presets
+        const PRESETS = {
+            simple: {
+                type: "top_bar", position: "top", fixed: true, showCloseButton: true,
+                content: {
+                    headline: { text: "Welcome!", style: { color: "#333333" } },
+                    body: { text: "Thanks for visiting.", style: { color: "#666666" } }
+                },
+                buttons: [{ text: "Got it", action: "close", style: { backgroundColor: "#2196F3", textColor: "#ffffff" } }],
+                style: { backgroundColor: "#ffffff" }
+            },
+            withImage: {
+                type: "top_bar", position: "top", fixed: true, showCloseButton: true,
+                content: {
+                    headline: { text: "🎉 New Feature!", style: { color: "#065f46" } },
+                    body: { text: "Check it out", style: { color: "#047857" } },
+                    image: { url: "https://via.placeholder.com/24", position: "left", height: "24px" }
+                },
+                buttons: [{ text: "Learn More", action: "link", url: "https://toggleup.io", style: { backgroundColor: "#10b981", textColor: "#ffffff" } }],
+                style: { backgroundColor: "#ecfdf5" }
+            },
+            multiButton: {
+                type: "top_bar", position: "top", fixed: true, showCloseButton: true,
+                content: {
+                    headline: { text: "🍪 Cookies", style: { color: "#92400e" } },
+                    body: { text: "We use cookies", style: { color: "#b45309" } }
+                },
+                buttons: [
+                    { text: "Accept", action: "close", style: { backgroundColor: "#2196F3", textColor: "#ffffff" } },
+                    { text: "Reject", action: "close", style: { backgroundColor: "#e0e0e0", textColor: "#333333" } }
+                ],
+                style: { backgroundColor: "#fffbeb" }
+            },
+            bottom: {
+                type: "top_bar", position: "bottom", fixed: true, showCloseButton: true,
+                content: {
+                    headline: { text: "📧 Subscribe", style: { color: "#ffffff" } },
+                    body: { text: "Get updates", style: { color: "#cccccc" } }
+                },
+                buttons: [{ text: "Subscribe", action: "link", url: "/subscribe", style: { backgroundColor: "#8b5cf6", textColor: "#ffffff" } }],
+                style: { backgroundColor: "#1a1a1a" }
+            },
+            noClose: {
+                type: "top_bar", position: "top", fixed: true, showCloseButton: false,
+                content: {
+                    headline: { text: "⚠️ Maintenance", style: { color: "#92400e" } },
+                    body: { text: "System down at 2AM", style: { color: "#b45309" } }
+                },
+                buttons: [],
+                style: { backgroundColor: "#fef3c7" }
+            },
+            niubizBranding: {
+                type: "top_bar", position: "top", fixed: true, showCloseButton: true,
+                content: {
+                    headline: { text: "¡Obtén tu nuevo POS!", style: { color: "#0F206C", fontWeight: "700", fontSize: "15px" } },
+                    body: { text: "Las mejores comisiones", style: { color: "#333333", fontSize: "14px" } },
+                    image: { url: "https://niubiz.com.pe/assets/images/logo-niubiz.svg", position: "left", height: "28px" }
+                },
+                buttons: [
+                    { text: "Asesoría", action: "link", url: "https://niubiz.com.pe", style: { backgroundColor: "#0F206C", textColor: "#ffffff", borderRadius: "9999px" } },
+                    { text: "Ver equipos", action: "link", url: "/equipos", style: { backgroundColor: "#F1F4F7", textColor: "#0F206C", borderRadius: "9999px" } }
+                ],
+                style: { backgroundColor: "#ffffff", fontFamily: "Lato" }
+            }
+        };
+
+        const editor = document.getElementById('json-editor');
+        let isUpdating = false;
+
+        // Init
+        loadPreset('simple');
+
+        function loadPreset(name) {
+            if (!name || !PRESETS[name]) return;
+            const config = JSON.parse(JSON.stringify(PRESETS[name]));
+            editor.value = JSON.stringify(config, null, 2);
+            updateFormFromConfig(config);
+            document.getElementById('preset-select').value = '';
+        }
+
+        function resetEditor() {
+            loadPreset('simple');
+        }
+
+        // Sync color input with text
+        function syncColorFromText(textInput, colorInputId) {
+            const val = textInput.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                document.getElementById(colorInputId).value = val;
+                updateFromForm();
+            }
+        }
+
+        // Toggle field
+        function toggleField(el, field) {
+            el.classList.toggle('active');
+            updateFromForm();
+        }
+
+        // Add button
+        function addButton() {
+            const config = getConfigFromForm();
+            if (config.buttons.length >= 3) return;
+            config.buttons.push({
+                text: "Nuevo botón",
+                action: "close",
+                style: { backgroundColor: "#2196F3", textColor: "#ffffff" }
+            });
+            editor.value = JSON.stringify(config, null, 2);
+            updateFormFromConfig(config);
+        }
+
+        // Remove button
+        function removeButton(index) {
+            const config = getConfigFromForm();
+            config.buttons.splice(index, 1);
+            editor.value = JSON.stringify(config, null, 2);
+            updateFormFromConfig(config);
+        }
+
+        // Update JSON from form
+        function updateFromForm() {
+            if (isUpdating) return;
+            isUpdating = true;
+            try {
+                const config = getConfigFromForm();
+                editor.value = JSON.stringify(config, null, 2);
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        // Update form from JSON
+        function updateFromJson() {
+            if (isUpdating) return;
+            isUpdating = true;
+            try {
+                const config = JSON.parse(editor.value);
+                updateFormFromConfig(config);
+            } catch (e) {
+                // Invalid JSON, ignore
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        // Get config from form
+        function getConfigFromForm() {
+            const config = {
+                type: "top_bar",
+                position: document.getElementById('cfg-position').value,
+                fixed: document.getElementById('cfg-fixed').classList.contains('active'),
+                showCloseButton: document.getElementById('cfg-showCloseButton').classList.contains('active'),
+                content: {
+                    headline: {
+                        text: document.getElementById('cfg-headline-text').value,
+                        style: { color: document.getElementById('cfg-headline-color').value }
+                    },
+                    body: {
+                        text: document.getElementById('cfg-body-text').value,
+                        style: { color: document.getElementById('cfg-body-color').value }
+                    }
+                },
+                buttons: [],
+                style: {
+                    backgroundColor: document.getElementById('cfg-bg-color').value
+                }
+            };
+
+            // Image
+            const imgUrl = document.getElementById('cfg-image-url').value;
+            if (imgUrl) {
+                config.content.image = {
+                    url: imgUrl,
+                    position: document.getElementById('cfg-image-position').value,
+                    height: document.getElementById('cfg-image-height').value
+                };
+            }
+
+            // Font family
+            const fontFamily = document.getElementById('cfg-font-family').value;
+            if (fontFamily) config.style.fontFamily = fontFamily;
+
+            // Border radius
+            const borderRadius = document.getElementById('cfg-border-radius').value;
+            if (borderRadius && borderRadius !== '0px') config.style.borderRadius = borderRadius;
+
+            // Buttons
+            const btnContainer = document.getElementById('buttons-container');
+            const btnItems = btnContainer.querySelectorAll('.button-item');
+            btnItems.forEach((item, i) => {
+                config.buttons.push({
+                    text: item.querySelector('.btn-text').value,
+                    action: item.querySelector('.btn-action').value,
+                    url: item.querySelector('.btn-url').value || undefined,
+                    style: {
+                        backgroundColor: item.querySelector('.btn-bg').value,
+                        textColor: item.querySelector('.btn-text-color').value
+                    }
+                });
+            });
+
+            return config;
+        }
+
+        // Update form from config
+        function updateFormFromConfig(config) {
+            document.getElementById('cfg-position').value = config.position || 'top';
+
+            const fixedEl = document.getElementById('cfg-fixed');
+            config.fixed !== false ? fixedEl.classList.add('active') : fixedEl.classList.remove('active');
+
+            const closeEl = document.getElementById('cfg-showCloseButton');
+            config.showCloseButton !== false ? closeEl.classList.add('active') : closeEl.classList.remove('active');
+
+            // Content
+            const headline = config.content?.headline || {};
+            document.getElementById('cfg-headline-text').value = headline.text || '';
+            const headlineColor = headline.style?.color || '#1a1a1a';
+            document.getElementById('cfg-headline-color').value = headlineColor;
+            document.getElementById('cfg-headline-color-text').value = headlineColor;
+
+            const body = config.content?.body || {};
+            document.getElementById('cfg-body-text').value = body.text || '';
+            const bodyColor = body.style?.color || '#666666';
+            document.getElementById('cfg-body-color').value = bodyColor;
+            document.getElementById('cfg-body-color-text').value = bodyColor;
+
+            // Image
+            const img = config.content?.image || {};
+            document.getElementById('cfg-image-url').value = img.url || '';
+            document.getElementById('cfg-image-position').value = img.position || 'left';
+            document.getElementById('cfg-image-height').value = img.height || '24px';
+
+            // Style
+            const bgColor = config.style?.backgroundColor || '#ffffff';
+            document.getElementById('cfg-bg-color').value = bgColor;
+            document.getElementById('cfg-bg-color-text').value = bgColor;
+            document.getElementById('cfg-font-family').value = config.style?.fontFamily || '';
+            document.getElementById('cfg-border-radius').value = config.style?.borderRadius || '0px';
+
+            // Buttons
+            renderButtons(config.buttons || []);
+        }
+
+        // Render buttons
+        function renderButtons(buttons) {
+            const container = document.getElementById('buttons-container');
+            container.innerHTML = '';
+            buttons.forEach((btn, i) => {
+                const html = `
+                    <div class="button-item">
+                        <div class="button-item-header">
+                            <span>Botón ${i + 1}</span>
+                            <button class="btn-remove" onclick="removeButton(${i})">×</button>
+                        </div>
+                        <div class="field">
+                            <input type="text" class="btn-text" value="${btn.text || ''}" oninput="updateFromForm()" placeholder="Texto">
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <select class="btn-action" onchange="updateFromForm()">
+                                    <option value="close" ${btn.action === 'close' ? 'selected' : ''}>Cerrar</option>
+                                    <option value="link" ${btn.action === 'link' ? 'selected' : ''}>Link</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <input type="text" class="btn-url" value="${btn.url || ''}" oninput="updateFromForm()" placeholder="URL">
+                            </div>
+                        </div>
+                        <div class="field-row">
+                            <div class="field color-field">
+                                <input type="color" class="btn-bg" value="${btn.style?.backgroundColor || '#2196F3'}" onchange="updateFromForm()">
+                                <span style="font-size:10px;color:#888">Fondo</span>
+                            </div>
+                            <div class="field color-field">
+                                <input type="color" class="btn-text-color" value="${btn.style?.textColor || '#ffffff'}" onchange="updateFromForm()">
+                                <span style="font-size:10px;color:#888">Texto</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // Execute popup
+        function executePopup() {
+            try {
+                const config = JSON.parse(editor.value);
+                if (window.ToggleupSDK && window.ToggleupSDK.showPopup) {
+                    window.ToggleupSDK.showPopup(config);
+                } else {
+                    showError('SDK not loaded. Run: npm run build:v1');
+                }
+            } catch (e) {
+                showError('JSON inválido: ' + e.message);
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-toast');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+    </script>
+
+    <script src="/v1/sdk.js"></script>
+</body>
+
+</html>

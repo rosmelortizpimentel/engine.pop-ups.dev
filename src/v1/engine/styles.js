@@ -326,35 +326,155 @@ export function getWatermarkStyles() {
 }
 
 /**
- * Mobile responsive styles as a CSS string
+ * Responsive styles as a CSS string
+ * Supports: Desktop, Tablet (768px), Mobile (480px)
+ * Cross-browser compatible
  */
 export const responsiveStyles = `
+  /* ============================================
+   * BASE STYLES - All devices
+   * ============================================ */
+  .popup-container {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  .popup-headline.top_bar,
+  .popup-body.top_bar {
+    white-space: normal !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* ============================================
+   * TABLET - max-width: 768px
+   * ============================================ */
+  @media (max-width: 768px) {
+    .popup-container.modal {
+      width: 90vw !important;
+      max-width: 500px !important;
+    }
+    
+    .popup-content.modal {
+      padding: 22px !important;
+    }
+    
+    .popup-headline.modal {
+      font-size: 20px !important;
+    }
+    
+    .popup-content.top_bar {
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      gap: 10px !important;
+      padding: 12px 50px 12px 16px !important;
+    }
+    
+    .popup-headline.top_bar {
+      font-size: 13px !important;
+    }
+    
+    .popup-body.top_bar {
+      font-size: 13px !important;
+    }
+    
+    .popup-btn.top_bar {
+      padding: 8px 14px !important;
+      font-size: 12px !important;
+    }
+  }
+
+  /* ============================================
+   * MOBILE - max-width: 480px
+   * ============================================ */
   @media (max-width: 480px) {
     .popup-container.modal {
       width: 95vw !important;
       max-width: none !important;
+      margin: 0 auto !important;
     }
     
     .popup-content.modal {
-      padding: 20px !important;
+      padding: 20px 16px !important;
     }
     
     .popup-headline.modal {
       font-size: 18px !important;
+      margin-bottom: 10px !important;
     }
     
     .popup-body.modal {
       font-size: 14px !important;
+      margin-bottom: 16px !important;
+    }
+    
+    .popup-btn {
+      width: 100% !important;
+      padding: 14px 20px !important;
+      font-size: 15px !important;
+      min-height: 48px !important;
     }
     
     .popup-content.top_bar {
       flex-direction: column !important;
+      align-items: center !important;
       text-align: center !important;
-      padding: 16px !important;
+      padding: 14px 44px 14px 14px !important;
+      gap: 8px !important;
     }
     
-    .popup-text-container.top_bar {
-      margin-right: 0 !important;
+    .popup-headline.top_bar {
+      font-size: 14px !important;
+      line-height: 1.3 !important;
+    }
+    
+    .popup-body.top_bar {
+      font-size: 13px !important;
+      line-height: 1.4 !important;
+    }
+    
+    .popup-btn.top_bar {
+      margin-top: 4px !important;
+      padding: 10px 20px !important;
+      font-size: 13px !important;
+      min-height: 44px !important;
+    }
+    
+    .popup-close-btn {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      right: 4px !important;
+    }
+
+    .popup-watermark {
+      font-size: 10px !important;
+      margin-top: 12px !important;
+      padding-top: 10px !important;
+    }
+  }
+
+  /* ============================================
+   * VERY SMALL SCREENS - max-width: 360px
+   * ============================================ */
+  @media (max-width: 360px) {
+    .popup-content.modal {
+      padding: 16px 12px !important;
+    }
+    
+    .popup-headline.modal {
+      font-size: 16px !important;
+    }
+    
+    .popup-body.modal {
+      font-size: 13px !important;
+    }
+    
+    .popup-headline.top_bar {
+      font-size: 13px !important;
+    }
+    
+    .popup-body.top_bar {
+      font-size: 12px !important;
     }
   }
 `;

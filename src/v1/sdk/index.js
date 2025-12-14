@@ -1,5 +1,5 @@
 /**
- * Pop-ups.dev SDK - Entry Point
+ * Toggleup.io SDK v1 - Entry Point
  * 
  * This is the main entry point for the embeddable SDK script.
  * It orchestrates the entire popup lifecycle:
@@ -14,6 +14,8 @@
  * - Lightweight (<8KB gzipped target)
  * - Non-intrusive (Shadow DOM isolation)
  * - Performant (lazy loading, minimal DOM operations)
+ * 
+ * @version 1.0.0
  */
 
 import { h, render } from 'preact';
@@ -106,7 +108,7 @@ function getApiKey() {
         return 'mock-api-key';
     }
 
-    console.error('[Pop-ups.dev] No script tag with data-api-key found');
+    console.error('[Toggleup] No script tag with data-api-key found');
     return null;
 }
 
@@ -137,16 +139,16 @@ async function fetchPopupConfigs(apiKey) {
 
         if (!response.ok) {
             if (response.status === 403) {
-                console.error('[Pop-ups.dev] Origin not allowed for this API key');
+                console.error('[Toggleup] Origin not allowed for this API key');
             } else if (response.status === 404) {
-                console.error('[Pop-ups.dev] Project not found');
+                console.error('[Toggleup] Project not found');
             }
             throw new Error(`API returned ${response.status}`);
         }
 
         return await response.json();
     } catch (error) {
-        console.error('[Pop-ups.dev] Failed to fetch popup configs:', error);
+        console.error('[Toggleup] Failed to fetch popup configs:', error);
         return [];
     }
 }
@@ -156,7 +158,7 @@ async function fetchPopupConfigs(apiKey) {
  */
 function createPopupHost() {
     const host = document.createElement('div');
-    host.id = 'popups-dev-host';
+    host.id = 'toggleup-host';
     host.style.cssText = `
     position: fixed;
     top: 0;
@@ -175,7 +177,7 @@ function createPopupHost() {
 
     // Create a container inside shadow for popups
     const container = document.createElement('div');
-    container.id = 'popups-dev-container';
+    container.id = 'toggleup-container';
     container.style.cssText = 'pointer-events: auto;';
     shadowRoot.appendChild(container);
 
@@ -185,10 +187,11 @@ function createPopupHost() {
 /**
  * Render a popup inside Shadow DOM
  */
-function renderPopup(config, container, onClose) {
+function renderPopup(config, container, onClose, branding = null) {
     render(
         h(PopupRenderer, {
             config,
+            branding,
             onClose,
             isPreview: false
         }),
@@ -206,18 +209,40 @@ function destroyPopup(host) {
 }
 
 /**
- * Show a single popup with full lifecycle
+ * Global branding configuration (set via API or manually)
  */
-function showPopup(config) {
+let globalBranding = null;
+
+/**
+ * Set global branding for all popups
+ */
+function setBranding(branding) {
+    globalBranding = branding;
+}
+
+/**
+ * Show a single popup with full lifecycle
+ * @param {Object} config - Popup configuration
+ * @param {Object} branding - Optional branding (uses global if not provided)
+ */
+function showPopup(config, branding = null) {
     const { host, container } = createPopupHost();
 
-    // Record that popup was shown
-    recordPopupShown(config.id, config.rules.frequency);
+    // Use provided branding or fall back to global
+    const activeBranding = branding || globalBranding;
+
+    // Record that popup was shown (only if rules.frequency exists - legacy format)
+    if (config.id && config.rules?.frequency) {
+        recordPopupShown(config.id, config.rules.frequency);
+    }
+
+    // Support both new format (flat) and legacy format (design object)
+    const design = config.design || config;
 
     // For top_bar with pushContent, add margin to body
     let bodyMarginCleanup = null;
-    if (config.design?.type === 'top_bar' && config.design?.pushContent !== false) {
-        const position = config.design?.position || 'top';
+    if (design.type === 'top_bar' && design.pushContent !== false) {
+        const position = design.position || 'top';
         const barHeight = '50px'; // Approximate height of top bar
 
         // Store original margin
@@ -244,6 +269,11 @@ function showPopup(config) {
 
     // Handle close
     const handleClose = () => {
+        // Remove scroll listener if exists
+        if (scrollCleanup) {
+            scrollCleanup();
+        }
+
         // Restore body margin if applicable
         if (bodyMarginCleanup) {
             bodyMarginCleanup();
@@ -255,8 +285,27 @@ function showPopup(config) {
         }, 250);
     };
 
-    // Render the popup
-    renderPopup(config, container, handleClose);
+    // If fixed: false, hide the banner on scroll
+    let scrollCleanup = null;
+    if (design.type === 'top_bar' && design.fixed === false) {
+        const scrollThreshold = 100; // Hide after scrolling 100px
+        const initialScrollY = window.scrollY;
+
+        const handleScroll = () => {
+            const scrolledDistance = Math.abs(window.scrollY - initialScrollY);
+            if (scrolledDistance > scrollThreshold) {
+                handleClose();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        scrollCleanup = () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }
+
+    // Render the popup with branding
+    renderPopup(config, container, handleClose, activeBranding);
 }
 
 /**
@@ -305,7 +354,7 @@ async function init() {
     }
 
     // Store cleanups for potential future use (e.g., SPA navigation)
-    window.__popupsDevCleanups = cleanups;
+    window.__toggleupCleanups = cleanups;
 }
 
 // ============================================
@@ -319,5 +368,17 @@ if (document.readyState === 'loading') {
     init();
 }
 
-// Export for testing/debugging
-export { init, showPopup, getApiKey };
+// ============================================
+// Expose SDK API globally for manual usage
+// ============================================
+window.ToggleupSDK = {
+    version: '1.0.0',
+    init,
+    showPopup,
+    setBranding,
+    getApiKey
+};
+
+// Export for ES modules/testing
+export { init, showPopup, setBranding, getApiKey };
+

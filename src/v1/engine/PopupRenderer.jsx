@@ -1,0 +1,436 @@
+import { Fragment } from 'preact';
+import { useState, useCallback, useMemo } from 'preact/hooks';
+import {
+    keyframes,
+    responsiveStyles,
+    getOverlayStyles,
+    getOverlayAnimationStyle
+} from './styles.js';
+import { mergeWithDefaults, DEFAULT_BUTTON_STYLE } from './defaults.js';
+
+/**
+ * PopupRenderer - The shared Preact component for rendering popups.
+ * 
+ * Supports both legacy format (design object) and new format (flat config).
+ * All values have sensible defaults defined in defaults.js.
+ * Supports branding object to inherit styles from client's website.
+ * 
+ * @version 1.0.0
+ */
+export function PopupRenderer({ config: rawConfig, branding = null, onClose, isPreview = false }) {
+    // Merge config with defaults and branding
+    const config = useMemo(() => mergeWithDefaults(rawConfig, branding), [rawConfig, branding]);
+
+    const [isExiting, setIsExiting] = useState(false);
+
+    // Support both new format and legacy design format
+    const design = config.design || config;
+    const isModal = design.type === 'modal';
+    const isTopBar = design.type === 'top_bar';
+
+    // Extract content (support both formats)
+    // headline/body can be string or { text, style }
+    const rawContent = design.content || {
+        headline: design.headline,
+        body: design.body,
+        image: design.image
+    };
+
+    // Normalize headline and body to support both string and object formats
+    const normalizeTextItem = (item) => {
+        if (typeof item === 'string') {
+            return { text: item, style: {} };
+        }
+        return item || { text: '', style: {} };
+    };
+
+    const content = {
+        headline: normalizeTextItem(rawContent.headline),
+        body: normalizeTextItem(rawContent.body),
+        image: rawContent.image
+    };
+
+    // Extract style (support both formats)
+    const style = design.style || {
+        backgroundColor: design.colors?.background,
+        textColor: design.colors?.text,
+        closeIconColor: design.colors?.closeIcon,
+        borderRadius: design.borderRadius,
+        boxShadow: design.boxShadow,
+        padding: design.padding
+    };
+
+    // Extract buttons (support both formats)
+    const buttons = design.buttons || (design.btnText ? [{
+        text: design.btnText,
+        action: design.btnLink ? 'link' : 'close',
+        url: design.btnLink,
+        target: '_self',
+        style: {
+            backgroundColor: design.colors?.buttonBg,
+            textColor: design.colors?.buttonText
+        }
+    }] : []);
+
+    /**
+     * Handle close with exit animation
+     */
+    const handleClose = useCallback(() => {
+        if (!design.closable && design.closable !== undefined) return;
+
+        if (isPreview) {
+            onClose?.();
+            return;
+        }
+
+        setIsExiting(true);
+        setTimeout(() => {
+            onClose?.();
+        }, 200);
+    }, [isPreview, onClose, design.closable]);
+
+    /**
+     * Handle button click
+     */
+    const handleButtonClick = useCallback((button) => {
+        if (button.action === 'link' && button.url) {
+            if (button.target === '_blank') {
+                window.open(button.url, '_blank', 'noopener,noreferrer');
+            } else {
+                window.location.href = button.url;
+            }
+        }
+
+        if (button.action === 'close' || !button.action) {
+            handleClose();
+        }
+    }, [handleClose]);
+
+    /**
+     * Handle overlay click
+     */
+    const handleOverlayClick = useCallback((e) => {
+        if (e.target === e.currentTarget && design.closeOnOverlayClick !== false) {
+            handleClose();
+        }
+    }, [handleClose, design.closeOnOverlayClick]);
+
+    /**
+     * Get animation style
+     */
+    const getAnimationStyle = (isExit = false) => {
+        const anim = design.animation || {};
+        const animName = isExit ? anim.exit : anim.enter;
+
+        const animations = {
+            slideDown: isExit ? 'slideOutUp' : 'slideDown',
+            slideUp: isExit ? 'slideOutDown' : 'slideUp',
+            scaleIn: isExit ? 'popupScaleOut' : 'popupScaleIn',
+            scaleOut: 'popupScaleOut',
+            fadeIn: isExit ? 'popupFadeOut' : 'popupFadeIn',
+            fadeOut: 'popupFadeOut',
+            none: null
+        };
+
+        const cssAnim = animations[animName] || animations.slideDown;
+        if (!cssAnim) return {};
+
+        return {
+            animation: `${cssAnim} ${isExit ? 200 : 300}ms ease-${isExit ? 'in' : 'out'} forwards`
+        };
+    };
+
+    /**
+     * Render close button
+     */
+    const renderCloseButton = () => {
+        if (design.showCloseButton === false) return null;
+
+        return (
+            <button
+                onClick={handleClose}
+                aria-label="Close"
+                class="popup-close-btn"
+                style={{
+                    position: 'absolute',
+                    top: isTopBar ? '50%' : '12px',
+                    right: '12px',
+                    transform: isTopBar ? 'translateY(-50%)' : 'none',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    minWidth: '44px',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: style.closeIconColor || '#999999',
+                    borderRadius: '50%',
+                    transition: 'background-color 150ms ease'
+                }}
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        );
+    };
+
+    /**
+     * Render a button
+     */
+    const renderButton = (button, index) => {
+        const btnStyle = { ...DEFAULT_BUTTON_STYLE, ...button.style };
+
+        return (
+            <button
+                key={index}
+                onClick={() => handleButtonClick(button)}
+                class="popup-btn"
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: btnStyle.padding || '8px 16px',
+                    fontSize: btnStyle.fontSize || '14px',
+                    fontWeight: btnStyle.fontWeight || '600',
+                    color: btnStyle.textColor || '#ffffff',
+                    backgroundColor: btnStyle.backgroundColor || '#2196F3',
+                    border: 'none',
+                    borderRadius: btnStyle.borderRadius || '4px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'opacity 150ms ease, transform 150ms ease'
+                }}
+            >
+                {button.text}
+            </button>
+        );
+    };
+
+    /**
+     * Render image
+     */
+    const renderImage = () => {
+        if (!content.image?.url) return null;
+
+        return (
+            <img
+                src={content.image.url}
+                alt=""
+                class="popup-image"
+                style={{
+                    width: content.image.width || 'auto',
+                    height: content.image.height || '24px',
+                    objectFit: 'contain',
+                    flexShrink: 0
+                }}
+            />
+        );
+    };
+
+    /**
+     * Render Top Bar
+     */
+    const renderTopBar = () => {
+        const position = design.position || 'top';
+        const isFixed = design.fixed !== false;
+        const imagePosition = content.image?.position || 'left';
+
+        const systemFonts = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        const containerStyle = {
+            fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
+            boxSizing: 'border-box',
+            // Always use fixed position in live mode (inside Shadow DOM)
+            // The 'fixed' prop controls whether it stays on scroll, not CSS position
+            position: isPreview ? 'relative' : 'fixed',
+            [position]: 0,
+            left: 0,
+            right: 0,
+            width: design.width || '100%',
+            maxWidth: design.maxWidth || 'none',
+            margin: design.maxWidth && design.maxWidth !== 'none' ? '0 auto' : undefined,
+            backgroundColor: style.backgroundColor || '#ffffff',
+            color: style.textColor || '#1a1a1a',
+            borderRadius: style.borderRadius || '0px',
+            boxShadow: style.boxShadow || '0 2px 8px rgba(0, 0, 0, 0.08)',
+            borderBottom: position === 'top' ? (style.borderBottom || '1px solid rgba(0, 0, 0, 0.05)') : undefined,
+            borderTop: position === 'bottom' ? (style.borderTop || '1px solid rgba(0, 0, 0, 0.05)') : undefined,
+            zIndex: 2147483647,
+            ...(isPreview ? {} : getAnimationStyle(isExiting))
+        };
+
+        const contentStyle = {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: style.padding || '12px 20px',
+            paddingRight: design.showCloseButton !== false ? '50px' : (style.padding || '20px'),
+            gap: '12px',
+            flexWrap: 'wrap',
+            minHeight: '40px'
+        };
+
+        return (
+            <div class="popup-container top_bar" style={containerStyle} role="banner">
+                <div class="popup-content top_bar" style={contentStyle}>
+                    {/* Image left */}
+                    {imagePosition === 'left' && renderImage()}
+
+                    {/* Text content */}
+                    <div class="popup-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {content.headline.text && (
+                            <span class="popup-headline top_bar" style={{
+                                fontWeight: content.headline.style?.fontWeight || '700',
+                                fontSize: content.headline.style?.fontSize || '14px',
+                                color: content.headline.style?.color || style.textColor || '#1a1a1a',
+                                ...content.headline.style
+                            }}>
+                                {content.headline.text}
+                            </span>
+                        )}
+                        {content.body.text && (
+                            <span class="popup-body top_bar" style={{
+                                fontSize: content.body.style?.fontSize || '14px',
+                                opacity: content.body.style?.opacity !== undefined ? content.body.style.opacity : 0.9,
+                                color: content.body.style?.color || style.textColor || '#1a1a1a',
+                                ...content.body.style
+                            }}>
+                                {content.body.text}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Image right */}
+                    {imagePosition === 'right' && renderImage()}
+
+                    {/* Buttons (max 3) */}
+                    {buttons.slice(0, 3).map((btn, i) => renderButton(btn, i))}
+                </div>
+
+                {renderCloseButton()}
+            </div>
+        );
+    };
+
+    /**
+     * Render Modal
+     */
+    const renderModal = () => {
+        const systemFonts = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        const containerStyle = {
+            fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
+            boxSizing: 'border-box',
+            position: isPreview ? 'relative' : 'fixed',
+            top: isPreview ? undefined : '50%',
+            left: isPreview ? undefined : '50%',
+            transform: isPreview ? undefined : 'translate(-50%, -50%)',
+            width: design.width || '420px',
+            maxWidth: design.maxWidth || '90vw',
+            backgroundColor: style.backgroundColor || '#ffffff',
+            color: style.textColor || '#1a1a1a',
+            borderRadius: style.borderRadius || '12px',
+            boxShadow: style.boxShadow || '0 4px 20px rgba(0, 0, 0, 0.15)',
+            zIndex: 2147483647,
+            ...(isPreview ? { margin: '0 auto' } : getAnimationStyle(isExiting))
+        };
+
+        const contentStyle = {
+            padding: style.padding || '24px',
+            textAlign: 'center'
+        };
+
+        return (
+            <div class="popup-container modal" style={containerStyle} role="dialog" aria-modal="true">
+                {renderCloseButton()}
+
+                <div class="popup-content modal" style={contentStyle}>
+                    {content.image?.url && (
+                        <img
+                            src={content.image.url}
+                            alt=""
+                            style={{
+                                width: content.image.width || '100%',
+                                height: content.image.height || 'auto',
+                                objectFit: 'contain',
+                                marginBottom: '16px',
+                                borderRadius: '8px'
+                            }}
+                        />
+                    )}
+
+                    {content.headline && (
+                        <h2 class="popup-headline modal" style={{ margin: '0 0 12px 0', fontSize: '22px', fontWeight: '700', lineHeight: '1.3' }}>
+                            {content.headline}
+                        </h2>
+                    )}
+
+                    {content.body && (
+                        <p class="popup-body modal" style={{ margin: '0 0 20px 0', fontSize: '15px', lineHeight: '1.5', opacity: 0.85 }}>
+                            {content.body}
+                        </p>
+                    )}
+
+                    {buttons.length > 0 && (
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {buttons.slice(0, 3).map((btn, i) => renderButton(btn, i))}
+                        </div>
+                    )}
+
+                    {design.showWatermark && (
+                        <div class="popup-watermark" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '11px', opacity: 0.5 }}>
+                            Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Toggleup</a>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderPopup = () => {
+        if (isTopBar) return renderTopBar();
+        return renderModal();
+    };
+
+    // Preview mode: just the popup
+    if (isPreview) {
+        return (
+            <Fragment>
+                <style>{keyframes}</style>
+                <style>{responsiveStyles}</style>
+                {renderPopup()}
+            </Fragment>
+        );
+    }
+
+    // Live mode: with overlay for modals
+    return (
+        <Fragment>
+            <style>{keyframes}</style>
+            <style>{responsiveStyles}</style>
+            <style>{`
+                .popup-close-btn:hover { background-color: rgba(0, 0, 0, 0.05); }
+                .popup-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+                .popup-btn:active { transform: translateY(0); }
+            `}</style>
+
+            {isModal && (
+                <div
+                    class="popup-overlay"
+                    style={{
+                        ...getOverlayStyles({ design: { colors: { overlay: style.overlayColor } } }),
+                        ...getOverlayAnimationStyle(isExiting)
+                    }}
+                    onClick={handleOverlayClick}
+                    aria-hidden="true"
+                />
+            )}
+
+            {renderPopup()}
+        </Fragment>
+    );
+}
+
+export default PopupRenderer;

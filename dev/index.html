@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pop-ups.dev SDK - Development Test Page</title>
+  <title>Toggleup SDK - Development Test Page</title>
   <style>
     /* 
      * This simulates a typical client website with existing styles.
@@ -149,7 +149,7 @@
 <body>
   <div class="container">
     <div class="hero">
-      <h1>🎉 Pop-ups.dev SDK Test Page</h1>
+      <h1>🎉 Toggleup SDK Test Page</h1>
       <p>
         Esta página simula un sitio web de cliente con estilos agresivos para probar
         el aislamiento del Shadow DOM. El popup debería aparecer después de 3 segundos.
@@ -162,6 +162,7 @@
       <button onclick="location.reload()">Reload Page</button>
       <button onclick="testManualShow()">Show Modal</button>
       <button onclick="testTopBar()">Show Top Bar</button>
+      <button onclick="window.location.href='banner-test.html'">🎨 Banner Editor</button>
     </div>
 
     <div class="content-block">
@@ -224,23 +225,17 @@
     </div>
 
     <div class="footer">
-      <p>Pop-ups.dev Engine Test Page • Development Only</p>
+      <p>Toggleup.io Engine Test Page • Development Only</p>
     </div>
   </div>
 
-  <!-- 
-    SDK Script Tag
-    In production, this would be something like:
-    <script src="https://cdn.pop-ups.dev/sdk.js" data-api-key="YOUR_API_KEY"></script>
-  -->
   <script type="module" data-api-key="5ee492767b25291f8afd28a723798542">
     // Import SDK directly for development (in production this is bundled)
-    import { init, showPopup } from '../src/sdk/index.js';
+    import { init, showPopup } from '../src/v1/sdk/index.js';
 
     // Clear popup storage for testing
     window.clearPopupData = () => {
-      // Import and call the clear function
-      import('../src/sdk/frequency.js').then(({ clearAllPopupData }) => {
+      import('../src/v1/sdk/frequency.js').then(({ clearAllPopupData }) => {
         clearAllPopupData();
         alert('Popup data cleared! Reload the page to see the popup again.');
       });

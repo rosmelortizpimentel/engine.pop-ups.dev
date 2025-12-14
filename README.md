@@ -1,160 +1,53 @@
-# Pop-ups.dev Engine SDK
+# Toggleup.io Engine
 
-A lightweight, embeddable popup SDK for websites. Renders popups based on configurations fetched from the Pop-ups.dev API.
+SDK embebible para mostrar popups en sitios de clientes.
 
-## Features
-
-- 🪶 **Lightweight**: ~9KB gzipped
-- 🔒 **Isolated**: Shadow DOM prevents CSS conflicts
-- ⚡ **Smart Triggers**: Time delay, scroll percentage, exit intent
-- 📊 **Frequency Capping**: Per session, per day, or lifetime
-- 🎨 **Two Types**: Modal popups and Top Bar announcements
-
-## Quick Start
-
-```bash
-npm install
-npm run dev          # Development server
-npm run build:sdk    # Build production bundle
-```
-
-## Usage
-
-### Embed in Any Website
-
-```html
-<script 
-  src="https://your-cdn.vercel.app/sdk.js" 
-  data-api-key="YOUR_API_KEY"
-></script>
-```
-
-That's it! The SDK will:
-1. Read your API key from the script tag
-2. Fetch popup configurations from the API
-3. Display popups based on trigger rules
-
-## Project Structure
+## Estructura Versionada
 
 ```
 src/
-├── engine/              # Core rendering
-│   ├── PopupRenderer.jsx    # Preact component
-│   └── styles.js           # CSS-in-JS
-│
-├── sdk/                 # SDK bundle entry
-│   ├── index.js            # Orchestration
-│   ├── triggers.js         # Time/scroll/exit triggers
-│   └── frequency.js        # View capping
-│
-└── preview/             # Dashboard export
-    └── index.js            # React-compatible wrapper
+├── v1/               # SDK versión 1 (estable)
+│   ├── sdk/          # Entry point y lógica de triggers
+│   └── engine/       # Componentes de renderizado (Preact)
+├── v2/               # Futuro: copiar v1, modificar sin breaking changes
+└── shared/           # Código compartido (opcional)
 
-dev/                     # Test pages
-├── index.html              # Vite dev testing
-└── production-test.html    # Production bundle testing
-
-dist/                    # Built output
-└── sdk.js               # Production IIFE bundle
+dist/
+├── v1/sdk.js         # Build: cdn.toggleup.io/v1/sdk.js
+└── v2/sdk.js         # Futuro
 ```
 
-## Vercel Deployment
+## Uso
 
-This project is configured for Vercel. After connecting to GitHub:
+### Embed Script (para clientes)
 
-1. **Build Command**: `npm run build:sdk`
-2. **Output Directory**: `dist`
-3. **Install Command**: `npm install`
+```html
+<!-- Producción: versión fija -->
+<script src="https://cdn.toggleup.io/v1/sdk.js" data-api-key="TU_API_KEY"></script>
 
-The `vercel.json` is already configured with:
-- CORS headers for cross-origin requests
-- Proper caching headers
-- Root URL redirects to `/sdk.js`
-
-### CDN URL
-
-After deployment, your SDK will be available at:
-```
-https://your-project.vercel.app/sdk.js
+<!-- Desarrollo: última versión -->
+<script src="https://cdn.toggleup.io/latest/sdk.js" data-api-key="TU_API_KEY"></script>
 ```
 
-## Development
+## Scripts
 
-### Testing with Vite (HMR)
-```bash
-npm run dev
-# Open http://localhost:5173/
-```
-> Note: Uses mock data in Vite due to module transformation
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build:v1` | Compilar SDK v1 |
+| `npm run build:all` | Compilar todas las versiones |
 
-### Testing Production Bundle
-```bash
-npm run build:sdk
-npx serve . -p 3333
-# Open http://localhost:3333/dev/production-test.html
-```
+## Crear nueva versión (v2, v3...)
 
-## Configuration
+1. Copiar carpeta: `cp -r src/v1 src/v2`
+2. Crear config: `cp vite.config.v1.js vite.config.v2.js`
+3. Actualizar entry en vite.config.v2.js: `'src/v2/sdk/index.js'`
+4. Agregar script en package.json: `"build:v2": "vite build --config vite.config.v2.js"`
+5. Actualizar build:all: `"build:all": "npm run build:v1 && npm run build:v2"`
+6. Modificar v2 sin tocar v1
 
-In `src/sdk/index.js`:
+## Despliegue
 
-| Variable | Description |
-|----------|-------------|
-| `API_BASE_URL` | Supabase Edge Function URL |
-| `USE_MOCK` | `true` for mock data, `false` for real API |
-| `DEV_API_KEY` | Fallback API key for local dev |
-
-## API Response Format
-
-The SDK expects this JSON structure from your API:
-
-```json
-[
-  {
-    "id": "popup-uuid",
-    "name": "Popup Name",
-    "design": {
-      "type": "modal|top_bar",
-      "headline": "Title",
-      "body": "Description",
-      "btnText": "Button",
-      "btnLink": null,
-      "position": "top|bottom",
-      "isSticky": true,
-      "colors": {
-        "background": "#ffffff",
-        "text": "#333333",
-        "buttonBg": "#0199fe",
-        "buttonText": "#ffffff",
-        "overlay": "rgba(0,0,0,0.5)",
-        "closeIcon": "#999999"
-      },
-      "styles": {
-        "borderRadius": "16px",
-        "boxShadow": "subtle|medium|strong"
-      },
-      "showWatermark": true
-    },
-    "rules": {
-      "trigger": {
-        "type": "immediate|time_delay|scroll_percent|exit_intent",
-        "value": 3
-      },
-      "frequency": {
-        "cap": "always|once_per_session|once_per_user_24h|once_lifetime"
-      }
-    }
-  }
-]
-```
-
-## Build Commands
-
-| Command | Description | Output |
-|---------|-------------|--------|
-| `npm run dev` | Vite dev server | http://localhost:5173/ |
-| `npm run build:sdk` | Production IIFE | `dist/sdk.js` (~9KB gzip) |
-
-## License
-
-MIT
+El proyecto se despliega en **Vercel** como `cdn.toggleup.io`:
+- `/v1/sdk.js` → SDK versión 1
+- `/latest/sdk.js` → Alias a la última versión estable

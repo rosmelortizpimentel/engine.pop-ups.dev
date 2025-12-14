@@ -1,10 +1,11 @@
 {
-    "name": "@pop-ups/engine",
-    "version": "0.1.0",
+    "name": "@toggleup/engine",
+    "version": "1.0.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build:sdk": "vite build --config vite.config.sdk.js",
+        "build:v1": "vite build --config vite.config.v1.js",
+        "build:all": "npm run build:v1",
         "preview": "vite preview"
     },
     "dependencies": {

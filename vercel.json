@@ -1,10 +1,27 @@
 {
-    "buildCommand": "npm run build:sdk",
+    "buildCommand": "npm run build:all",
     "outputDirectory": "dist",
     "installCommand": "npm install",
     "headers": [
         {
-            "source": "/sdk.js",
+            "source": "/v1/sdk.js",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                },
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=3600, s-maxage=86400"
+                },
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript; charset=utf-8"
+                }
+            ]
+        },
+        {
+            "source": "/v:version/sdk.js",
             "headers": [
                 {
                     "key": "Access-Control-Allow-Origin",
@@ -23,8 +40,8 @@
     ],
     "rewrites": [
         {
-            "source": "/",
-            "destination": "/sdk.js"
+            "source": "/latest/sdk.js",
+            "destination": "/v1/sdk.js"
         }
     ]
 }

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
+import { resolve } from 'path';
 
 /**
  * Vite configuration for local development.
@@ -12,6 +13,17 @@ export default defineConfig({
 
     server: {
         port: 5173,
-        open: true
+        open: true,
+        fs: {
+            // Allow serving files from dist folder
+            allow: ['..']
+        }
+    },
+
+    resolve: {
+        alias: {
+            // Serve /v1/sdk.js from dist/v1/sdk.js
+            '/v1': resolve(__dirname, 'dist/v1')
+        }
     }
 });
