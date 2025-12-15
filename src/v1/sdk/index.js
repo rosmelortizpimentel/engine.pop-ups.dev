@@ -374,13 +374,19 @@ async function init() {
 
 // ============================================
 // Auto-initialize when DOM is ready
+// Check for data-manual attribute to skip auto-init
 // ============================================
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    // DOM already loaded
-    init();
+const currentScript = document.currentScript;
+const isManualMode = currentScript?.hasAttribute('data-manual');
+
+if (!isManualMode) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        // DOM already loaded
+        init();
+    }
 }
 
 /**
@@ -393,6 +399,21 @@ async function getConfigs() {
     return await fetchPopupConfigs(apiKey);
 }
 
+/**
+ * Show a specific popup by its ID
+ * @param {string} id - The popup ID
+ */
+async function showPopupById(id) {
+    const configs = await getConfigs();
+    const popup = configs.find(c => c.id === id);
+    if (popup) {
+        showPopup(popup);
+        return true;
+    }
+    console.warn(`[Toggleup] Popup with id "${id}" not found`);
+    return false;
+}
+
 // ============================================
 // Expose SDK API globally for manual usage
 // ============================================
@@ -400,11 +421,12 @@ window.ToggleupSDK = {
     version: '1.0.0',
     init,
     showPopup,
+    showPopupById,
     setBranding,
     getApiKey,
     getConfigs
 };
 
 // Export for ES modules/testing
-export { init, showPopup, setBranding, getApiKey, getConfigs };
+export { init, showPopup, showPopupById, setBranding, getApiKey, getConfigs };
 
