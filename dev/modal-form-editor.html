@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggleup - Modal Form Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f6f8;
+            color: #1a1a1a;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row .field {
+            flex: 1;
+        }
+
+        .color-field {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-field input[type="color"] {
+            width: 42px;
+            height: 42px;
+            padding: 2px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .color-field input[type="text"] {
+            flex: 1;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .toggle-row span {
+            font-size: 13px;
+            color: #333;
+        }
+
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle.active {
+            background: #3b82f6;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        .repeater-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .repeater-item .remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 10px;
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-add:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .card.full-width {
+            grid-column: span 3;
+        }
+
+        @media (max-width: 1024px) {
+            .card.full-width {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        .json-output {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .json-output h3 {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .json-output pre {
+            color: #e0e0e0;
+            font-family: 'Monaco', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪟 Editor de Modal</h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="copyJson()">📋 Copiar JSON</button>
+                <button class="btn btn-success" onclick="execute()">▶ Ejecutar</button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Card 1: Contenido de Texto -->
+            <div class="card">
+                <div class="card-title">📝 Contenido de Texto</div>
+                <div class="field">
+                    <label>Título</label>
+                    <input type="text" id="headline" oninput="update()" placeholder="¡Oferta Especial!">
+                </div>
+                <div class="field">
+                    <label>Color título</label>
+                    <div class="color-field">
+                        <input type="color" id="headline-color" value="#1a1a1a" onchange="update()">
+                        <input type="text" id="headline-color-t" value="#1a1a1a"
+                            oninput="syncColor(this,'headline-color')">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Subtítulo</label>
+                    <textarea id="body" oninput="update()" placeholder="Descripción del popup..."></textarea>
+                </div>
+                <div class="field">
+                    <label>Color subtítulo</label>
+                    <div class="color-field">
+                        <input type="color" id="body-color" value="#666666" onchange="update()">
+                        <input type="text" id="body-color-t" value="#666666" oninput="syncColor(this,'body-color')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Estructura y Estilo -->
+            <div class="card">
+                <div class="card-title">⚙️ Estructura y Estilo</div>
+                <div class="field">
+                    <label>Tamaño</label>
+                    <select id="size" onchange="update()">
+                        <option value="small">Pequeño</option>
+                        <option value="medium" selected>Mediano</option>
+                        <option value="large">Grande</option>
+                    </select>
+                </div>
+                <div class="toggle-row">
+                    <span>Botón cerrar (X)</span>
+                    <div class="toggle active" id="showClose" onclick="toggleField(this)"></div>
+                </div>
+                <div class="toggle-row">
+                    <span>Cerrar al click overlay</span>
+                    <div class="toggle active" id="closeOnOverlay" onclick="toggleField(this)"></div>
+                </div>
+                <div class="field">
+                    <label>Font Family</label>
+                    <select id="font" onchange="update()">
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Inter">Inter</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Lato">Lato</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Color de fondo</label>
+                    <div class="color-field">
+                        <input type="color" id="bg-color" value="#ffffff" onchange="update()">
+                        <input type="text" id="bg-color-t" value="#ffffff" oninput="syncColor(this,'bg-color')">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Border radius</label>
+                    <input type="text" id="radius" oninput="update()" placeholder="16px">
+                </div>
+            </div>
+
+            <!-- Card 3: Imagen -->
+            <div class="card">
+                <div class="card-title">🖼️ Imagen</div>
+                <div class="field">
+                    <label>URL de imagen</label>
+                    <input type="url" id="img-url" oninput="update()" placeholder="https://...">
+                </div>
+                <div class="field">
+                    <label>Posición</label>
+                    <select id="img-pos" onchange="update()">
+                        <option value="top">Arriba</option>
+                        <option value="left">Izquierda</option>
+                        <option value="right">Derecha</option>
+                        <option value="background">Fondo</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Alto de imagen</label>
+                    <input type="text" id="img-height" oninput="update()" placeholder="180px">
+                </div>
+            </div>
+
+            <!-- Card 4: Features -->
+            <div class="card">
+                <div class="card-title">✓ Features (Lista)</div>
+                <div id="features-container"></div>
+                <button class="btn-add" onclick="addFeature()">+ Agregar feature</button>
+            </div>
+
+            <!-- Card 5: Campo Email -->
+            <div class="card">
+                <div class="card-title">📧 Campo de Captura</div>
+                <div class="toggle-row">
+                    <span>Habilitar campo</span>
+                    <div class="toggle" id="input-enabled" onclick="toggleField(this)"></div>
+                </div>
+                <div class="field">
+                    <label>Tipo</label>
+                    <select id="input-type" onchange="update()">
+                        <option value="email">Email</option>
+                        <option value="text">Texto</option>
+                        <option value="phone">Teléfono</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Placeholder</label>
+                    <input type="text" id="input-placeholder" oninput="update()" placeholder="tu@email.com">
+                </div>
+            </div>
+
+            <!-- Card 6: Footer -->
+            <div class="card">
+                <div class="card-title">📑 Footer</div>
+                <div class="field">
+                    <label>Texto</label>
+                    <input type="text" id="footer-text" oninput="update()" placeholder="Al continuar aceptas nuestros">
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label>Link 1 texto</label>
+                        <input type="text" id="link1-text" oninput="update()" placeholder="Términos">
+                    </div>
+                    <div class="field">
+                        <label>Link 1 URL</label>
+                        <input type="text" id="link1-url" oninput="update()" placeholder="/terms">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label>Link 2 texto</label>
+                        <input type="text" id="link2-text" oninput="update()" placeholder="Privacidad">
+                    </div>
+                    <div class="field">
+                        <label>Link 2 URL</label>
+                        <input type="text" id="link2-url" oninput="update()" placeholder="/privacy">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: Botones -->
+            <div class="card full-width">
+                <div class="card-title">🔘 Botones (máx 3)</div>
+                <div id="buttons-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                </div>
+                <button class="btn-add" onclick="addButton()" style="margin-top: 12px;">+ Agregar botón</button>
+            </div>
+        </div>
+
+        <!-- JSON Output -->
+        <div class="json-output">
+            <h3>📄 JSON GENERADO</h3>
+            <pre id="json-output"></pre>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let features = [];
+        let buttons = [{ text: 'Aceptar', action: 'close', url: '', bg: '#3b82f6', tc: '#ffffff', radius: '8px' }];
+
+        function syncColor(textInput, colorId) {
+            if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+                document.getElementById(colorId).value = textInput.value;
+                update();
+            }
+        }
+
+        function toggleField(el) {
+            el.classList.toggle('active');
+            update();
+        }
+
+        // Features
+        function renderFeatures() {
+            document.getElementById('features-container').innerHTML = features.map((f, i) => `
+                <div class="repeater-item">
+                    <button class="remove-btn" onclick="features.splice(${i},1);renderFeatures();update()">×</button>
+                    <div class="row">
+                        <div class="field" style="flex:0 0 60px">
+                            <label>Icono</label>
+                            <input type="text" value="${f.icon}" oninput="features[${i}].icon=this.value;update()">
+                        </div>
+                        <div class="field">
+                            <label>Texto</label>
+                            <input type="text" value="${f.text}" oninput="features[${i}].text=this.value;update()" placeholder="Beneficio...">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function addFeature() { if (features.length < 5) { features.push({ icon: '✓', text: '' }); renderFeatures(); } }
+
+        // Buttons
+        function renderButtons() {
+            document.getElementById('buttons-container').innerHTML = buttons.map((b, i) => `
+                <div class="repeater-item">
+                    <button class="remove-btn" onclick="buttons.splice(${i},1);renderButtons();update()">×</button>
+                    <div class="field"><label>Texto</label><input type="text" value="${b.text}" oninput="buttons[${i}].text=this.value;update()"></div>
+                    <div class="field"><label>Acción</label><select onchange="buttons[${i}].action=this.value;update()"><option value="close" ${b.action === 'close' ? 'selected' : ''}>Cerrar</option><option value="link" ${b.action === 'link' ? 'selected' : ''}>Link</option></select></div>
+                    <div class="field"><label>URL</label><input type="text" value="${b.url}" oninput="buttons[${i}].url=this.value;update()" placeholder="/ruta"></div>
+                    <div class="row">
+                        <div class="field"><label>Fondo</label><div class="color-field"><input type="color" value="${b.bg}" onchange="buttons[${i}].bg=this.value;update()"></div></div>
+                        <div class="field"><label>Texto</label><div class="color-field"><input type="color" value="${b.tc}" onchange="buttons[${i}].tc=this.value;update()"></div></div>
+                    </div>
+                    <div class="field"><label>Border radius</label><input type="text" value="${b.radius || ''}" oninput="buttons[${i}].radius=this.value;update()" placeholder="8px"></div>
+                </div>
+            `).join('');
+        }
+        function addButton() { if (buttons.length < 3) { buttons.push({ text: 'Botón', action: 'close', url: '', bg: '#e5e5e5', tc: '#333333', radius: '8px' }); renderButtons(); update(); } }
+
+        function getConfig() {
+            const c = {
+                type: 'modal',
+                size: document.getElementById('size').value,
+                showCloseButton: document.getElementById('showClose').classList.contains('active'),
+                closeOnOverlay: document.getElementById('closeOnOverlay').classList.contains('active'),
+                content: {
+                    headline: { text: document.getElementById('headline').value, style: { color: document.getElementById('headline-color').value } },
+                    body: { text: document.getElementById('body').value, style: { color: document.getElementById('body-color').value } }
+                },
+                buttons: buttons.filter(b => b.text).map(b => ({ text: b.text, action: b.action, url: b.url || undefined, style: { backgroundColor: b.bg, textColor: b.tc, borderRadius: b.radius || undefined } })),
+                style: { backgroundColor: document.getElementById('bg-color').value }
+            };
+
+            const font = document.getElementById('font').value;
+            const radius = document.getElementById('radius').value;
+            if (font) c.style.fontFamily = font;
+            if (radius) c.style.borderRadius = radius;
+
+            // Image
+            const imgUrl = document.getElementById('img-url').value;
+            if (imgUrl) {
+                c.content.image = {
+                    url: imgUrl,
+                    position: document.getElementById('img-pos').value,
+                    height: document.getElementById('img-height').value || '180px'
+                };
+            }
+
+            // Features
+            const validFeatures = features.filter(f => f.text?.trim());
+            if (validFeatures.length) c.content.features = validFeatures;
+
+            // Input
+            if (document.getElementById('input-enabled').classList.contains('active')) {
+                c.content.input = {
+                    enabled: true,
+                    type: document.getElementById('input-type').value,
+                    placeholder: document.getElementById('input-placeholder').value || 'tu@email.com'
+                };
+            }
+
+            // Footer
+            const footerText = document.getElementById('footer-text').value;
+            const l1t = document.getElementById('link1-text').value;
+            const l1u = document.getElementById('link1-url').value;
+            const l2t = document.getElementById('link2-text').value;
+            const l2u = document.getElementById('link2-url').value;
+            if (footerText || l1t || l2t) {
+                c.footer = { text: footerText };
+                const links = [];
+                if (l1t && l1u) links.push({ text: l1t, url: l1u });
+                if (l2t && l2u) links.push({ text: l2t, url: l2u });
+                if (links.length) c.footer.links = links;
+            }
+
+            return c;
+        }
+
+        function update() {
+            document.getElementById('json-output').textContent = JSON.stringify(getConfig(), null, 2);
+        }
+
+        function copyJson() {
+            navigator.clipboard.writeText(JSON.stringify(getConfig(), null, 2));
+            toast('JSON copiado!');
+        }
+
+        function execute() {
+            if (window.ToggleupSDK?.showPopup) {
+                window.ToggleupSDK.showPopup(getConfig());
+            } else {
+                toast('SDK no cargado', true);
+            }
+        }
+
+        function toast(msg, isError) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.background = isError ? '#ef4444' : '#22c55e';
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
+        }
+
+        // Init
+        function loadFakeData() {
+            // Content
+            document.getElementById('headline').value = '¡Oferta Black Friday!';
+            document.getElementById('headline-color').value = '#0F206C';
+            document.getElementById('headline-color-t').value = '#0F206C';
+            document.getElementById('body').value = 'Aprovecha hasta 50% de descuento en toda nuestra colección. Solo por tiempo limitado.';
+            document.getElementById('body-color').value = '#555555';
+            document.getElementById('body-color-t').value = '#555555';
+
+            // Structure
+            document.getElementById('size').value = 'large';
+            document.getElementById('font').value = 'Inter';
+            document.getElementById('bg-color').value = '#ffffff';
+            document.getElementById('bg-color-t').value = '#ffffff';
+            document.getElementById('radius').value = '20px';
+
+            // Image
+            document.getElementById('img-url').value = 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=500&fit=crop';
+            document.getElementById('img-pos').value = 'left';
+            document.getElementById('img-height').value = '280px';
+
+            // Features
+            features = [
+                { icon: '🚚', text: 'Envío gratis en pedidos +$50' },
+                { icon: '💳', text: 'Hasta 12 cuotas sin interés' },
+                { icon: '🔄', text: 'Devolución gratis 30 días' }
+            ];
+            renderFeatures();
+
+            // Input
+            document.getElementById('input-enabled').classList.add('active');
+            document.getElementById('input-type').value = 'email';
+            document.getElementById('input-placeholder').value = 'tu@email.com para ofertas exclusivas';
+
+            // Footer
+            document.getElementById('footer-text').value = 'Al continuar aceptas nuestros';
+            document.getElementById('link1-text').value = 'Términos';
+            document.getElementById('link1-url').value = '/terms';
+            document.getElementById('link2-text').value = 'Privacidad';
+            document.getElementById('link2-url').value = '/privacy';
+
+            // Buttons
+            buttons = [
+                { text: 'Obtener Oferta', action: 'link', url: '/black-friday', bg: '#0F206C', tc: '#ffffff', radius: '12px' },
+                { text: 'Quizás después', action: 'close', url: '', bg: 'transparent', tc: '#888888', radius: '8px' }
+            ];
+            renderButtons();
+        }
+
+        loadFakeData();
+        update();
+    </script>
+    <script src="/v1/sdk.js"></script>
+</body>
+
+</html>

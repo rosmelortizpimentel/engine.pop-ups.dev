@@ -159,13 +159,35 @@ async function fetchPopupConfigs(apiKey) {
 /**
  * Create isolated Shadow DOM container for popup
  * @param {boolean} isFixed - If false, insert at body start as inline element
+ * @param {boolean} isModal - If true, create fullscreen overlay host for modal
  */
-function createPopupHost(isFixed = true) {
+function createPopupHost(isFixed = true, isModal = false) {
     const host = document.createElement('div');
     host.id = 'toggleup-host';
 
-    if (isFixed) {
-        // Fixed mode: overlay at top of viewport
+    if (!isFixed) {
+        // Inline mode: insert at very beginning of body, flows with content
+        host.style.cssText = `
+            position: relative;
+            display: block;
+            width: 100%;
+            z-index: 2147483647;
+        `;
+        document.body.insertBefore(host, document.body.firstChild);
+    } else if (isModal) {
+        // Modal mode: fullscreen fixed overlay
+        host.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2147483647;
+            pointer-events: none;
+        `;
+        document.body.appendChild(host);
+    } else {
+        // Banner mode: minimal fixed container
         host.style.cssText = `
             position: fixed;
             top: 0;
@@ -177,15 +199,6 @@ function createPopupHost(isFixed = true) {
             pointer-events: none;
         `;
         document.body.appendChild(host);
-    } else {
-        // Inline mode: insert at very beginning of body, flows with content
-        host.style.cssText = `
-            position: relative;
-            display: block;
-            width: 100%;
-            z-index: 2147483647;
-        `;
-        document.body.insertBefore(host, document.body.firstChild);
     }
 
     // Create Shadow DOM for style isolation
@@ -194,7 +207,9 @@ function createPopupHost(isFixed = true) {
     // Create a container inside shadow for popups
     const container = document.createElement('div');
     container.id = 'toggleup-container';
-    container.style.cssText = 'pointer-events: auto;';
+    container.style.cssText = isModal
+        ? 'pointer-events: auto; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'
+        : 'pointer-events: auto;';
     shadowRoot.appendChild(container);
 
     return { host, shadowRoot, container };
@@ -245,10 +260,14 @@ function showPopup(config, branding = null) {
     // Support both new format (flat) and legacy format (design object)
     const design = config.design || config;
 
-    // Determine if banner should be fixed or inline
-    const isFixed = design.fixed !== false;
+    // Determine popup type
+    const isModal = design.type === 'modal';
+    const isTopBar = design.type === 'top_bar';
 
-    const { host, container } = createPopupHost(isFixed);
+    // Determine if banner should be fixed or inline (only for top_bar)
+    const isFixed = isTopBar ? design.fixed !== false : true;
+
+    const { host, container } = createPopupHost(isFixed, isModal);
 
     // Use provided branding or fall back to global
     const activeBranding = branding || globalBranding;

@@ -334,6 +334,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
         const containerStyle = {
             fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
             boxSizing: 'border-box',
+            // Fixed position for centering in live mode
             position: isPreview ? 'relative' : 'fixed',
             top: isPreview ? undefined : '50%',
             left: isPreview ? undefined : '50%',
