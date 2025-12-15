@@ -47,7 +47,9 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
     const content = {
         headline: normalizeTextItem(rawContent.headline),
         body: normalizeTextItem(rawContent.body),
-        image: rawContent.image
+        image: rawContent.image,
+        features: rawContent.features || [],
+        input: rawContent.input
     };
 
     // Extract style (support both formats)
@@ -315,10 +317,20 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
     };
 
     /**
-     * Render Modal
+     * Render Modal - Full customizable modal popup
      */
     const renderModal = () => {
         const systemFonts = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+
+        // Size presets
+        const sizePresets = {
+            small: '360px',
+            medium: '480px',
+            large: '600px',
+            fullscreen: '95vw'
+        };
+        const modalWidth = sizePresets[design.size] || design.width || '480px';
+
         const containerStyle = {
             fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
             boxSizing: 'border-box',
@@ -326,63 +338,248 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             top: isPreview ? undefined : '50%',
             left: isPreview ? undefined : '50%',
             transform: isPreview ? undefined : 'translate(-50%, -50%)',
-            width: design.width || '420px',
+            width: modalWidth,
             maxWidth: design.maxWidth || '90vw',
+            maxHeight: design.maxHeight || '85vh',
+            overflow: 'auto',
             backgroundColor: style.backgroundColor || '#ffffff',
             color: style.textColor || '#1a1a1a',
-            borderRadius: style.borderRadius || '12px',
-            boxShadow: style.boxShadow || '0 4px 20px rgba(0, 0, 0, 0.15)',
+            borderRadius: style.borderRadius || '16px',
+            boxShadow: style.boxShadow || '0 25px 50px rgba(0, 0, 0, 0.25)',
+            border: style.border || 'none',
             zIndex: 2147483647,
             ...(isPreview ? { margin: '0 auto' } : getAnimationStyle(isExiting))
         };
 
-        const contentStyle = {
-            padding: style.padding || '24px',
-            textAlign: 'center'
+        // Image position determines layout
+        const imagePosition = content.image?.position || 'top';
+        const isHorizontalImage = imagePosition === 'left' || imagePosition === 'right';
+
+        const contentLayoutStyle = {
+            display: isHorizontalImage ? 'flex' : 'block',
+            flexDirection: imagePosition === 'right' ? 'row-reverse' : 'row'
         };
 
-        return (
-            <div class="popup-container modal" style={containerStyle} role="dialog" aria-modal="true">
-                {renderCloseButton()}
+        // Render hero image
+        const renderHeroImage = () => {
+            if (!content.image?.url) return null;
 
-                <div class="popup-content modal" style={contentStyle}>
-                    {content.image?.url && (
-                        <img
-                            src={content.image.url}
-                            alt=""
-                            style={{
-                                width: content.image.width || '100%',
-                                height: content.image.height || 'auto',
-                                objectFit: 'contain',
-                                marginBottom: '16px',
-                                borderRadius: '8px'
-                            }}
-                        />
-                    )}
+            const imageStyle = {
+                objectFit: content.image.objectFit || 'cover',
+                flexShrink: 0
+            };
 
-                    {content.headline && (
-                        <h2 class="popup-headline modal" style={{ margin: '0 0 12px 0', fontSize: '22px', fontWeight: '700', lineHeight: '1.3' }}>
-                            {content.headline}
+            if (imagePosition === 'top') {
+                imageStyle.width = '100%';
+                imageStyle.height = content.image.height || '180px';
+                imageStyle.borderRadius = `${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0 0`;
+            } else if (imagePosition === 'background') {
+                return null; // Handled separately
+            } else {
+                // left/right
+                imageStyle.width = content.image.width || '40%';
+                imageStyle.height = '100%';
+                imageStyle.minHeight = '250px';
+                imageStyle.borderRadius = imagePosition === 'left'
+                    ? `${style.borderRadius || '16px'} 0 0 ${style.borderRadius || '16px'}`
+                    : `0 ${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0`;
+            }
+
+            return (
+                <img
+                    src={content.image.url}
+                    alt={content.image.alt || ''}
+                    class="popup-image"
+                    style={imageStyle}
+                />
+            );
+        };
+
+        // Text content area
+        const renderTextContent = () => {
+            const padding = isHorizontalImage ? '24px' : (style.padding || '32px');
+            const textAlign = style.textAlign || 'center';
+
+            return (
+                <div class="popup-content modal" style={{
+                    padding,
+                    textAlign,
+                    flex: isHorizontalImage ? 1 : undefined
+                }}>
+                    {/* Headline */}
+                    {content.headline.text && (
+                        <h2 class="popup-headline modal" style={{
+                            margin: '0 0 12px 0',
+                            fontSize: content.headline.style?.fontSize || '24px',
+                            fontWeight: content.headline.style?.fontWeight || '700',
+                            lineHeight: '1.3',
+                            color: content.headline.style?.color || style.textColor || '#1a1a1a',
+                            textAlign: content.headline.style?.textAlign || textAlign,
+                            ...content.headline.style
+                        }}>
+                            {content.headline.text}
                         </h2>
                     )}
 
-                    {content.body && (
-                        <p class="popup-body modal" style={{ margin: '0 0 20px 0', fontSize: '15px', lineHeight: '1.5', opacity: 0.85 }}>
-                            {content.body}
+                    {/* Body */}
+                    {content.body.text && (
+                        <p class="popup-body modal" style={{
+                            margin: '0 0 24px 0',
+                            fontSize: content.body.style?.fontSize || '16px',
+                            lineHeight: content.body.style?.lineHeight || '1.6',
+                            color: content.body.style?.color || '#666666',
+                            textAlign: content.body.style?.textAlign || textAlign,
+                            ...content.body.style
+                        }}>
+                            {content.body.text}
                         </p>
                     )}
 
-                    {buttons.length > 0 && (
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {buttons.slice(0, 3).map((btn, i) => renderButton(btn, i))}
+                    {/* Features list */}
+                    {content.features && content.features.length > 0 && (
+                        <ul style={{
+                            listStyle: 'none',
+                            padding: 0,
+                            margin: '0 0 24px 0',
+                            textAlign: 'left'
+                        }}>
+                            {content.features.map((feature, i) => (
+                                <li key={i} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    marginBottom: '8px',
+                                    fontSize: '14px',
+                                    color: '#555'
+                                }}>
+                                    <span style={{ color: '#22c55e' }}>{feature.icon || '✓'}</span>
+                                    <span>{feature.text}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {/* Input field (email capture, etc.) */}
+                    {content.input?.enabled && (
+                        <div style={{ marginBottom: '16px' }}>
+                            <input
+                                type={content.input.type || 'email'}
+                                placeholder={content.input.placeholder || 'Enter your email'}
+                                required={content.input.required}
+                                style={{
+                                    width: '100%',
+                                    padding: content.input.style?.padding || '14px 16px',
+                                    fontSize: '15px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: content.input.style?.borderRadius || '8px',
+                                    boxSizing: 'border-box',
+                                    ...content.input.style
+                                }}
+                            />
                         </div>
                     )}
 
+                    {/* Buttons */}
+                    {buttons.length > 0 && (
+                        <div style={{
+                            display: 'flex',
+                            gap: '12px',
+                            justifyContent: textAlign,
+                            flexWrap: 'wrap',
+                            flexDirection: buttons.length === 1 ? 'column' : 'row'
+                        }}>
+                            {buttons.slice(0, 3).map((btn, i) => {
+                                const btnStyle = { ...DEFAULT_BUTTON_STYLE, ...btn.style };
+                                const isPrimary = btn.primary !== false && i === 0;
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleButtonClick(btn)}
+                                        class={`popup-btn ${isPrimary ? 'primary' : 'secondary'}`}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: btnStyle.padding || (isPrimary ? '14px 28px' : '10px 20px'),
+                                            fontSize: btnStyle.fontSize || '16px',
+                                            fontWeight: btnStyle.fontWeight || '600',
+                                            color: btnStyle.textColor || (isPrimary ? '#ffffff' : '#666666'),
+                                            backgroundColor: btnStyle.backgroundColor || (isPrimary ? '#2196F3' : 'transparent'),
+                                            border: btnStyle.border || 'none',
+                                            borderRadius: btnStyle.borderRadius || '8px',
+                                            boxShadow: btnStyle.boxShadow || 'none',
+                                            cursor: 'pointer',
+                                            width: btnStyle.width || (buttons.length === 1 ? '100%' : 'auto'),
+                                            whiteSpace: 'nowrap',
+                                            transition: 'all 150ms ease'
+                                        }}
+                                    >
+                                        {btn.text}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Footer */}
+                    {design.footer && (
+                        <div class="popup-footer" style={{
+                            marginTop: '20px',
+                            paddingTop: '16px',
+                            borderTop: '1px solid rgba(0,0,0,0.08)',
+                            fontSize: design.footer.style?.fontSize || '12px',
+                            color: design.footer.style?.color || '#999999',
+                            ...design.footer.style
+                        }}>
+                            {design.footer.text && <span>{design.footer.text} </span>}
+                            {design.footer.links && design.footer.links.map((link, i) => (
+                                <span key={i}>
+                                    {i > 0 && ' · '}
+                                    <a
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ color: 'inherit', textDecoration: 'underline' }}
+                                    >
+                                        {link.text}
+                                    </a>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Watermark */}
                     {design.showWatermark && (
-                        <div class="popup-watermark" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '11px', opacity: 0.5 }}>
+                        <div class="popup-watermark" style={{
+                            marginTop: '16px',
+                            paddingTop: '12px',
+                            borderTop: '1px solid rgba(0,0,0,0.08)',
+                            fontSize: '11px',
+                            opacity: 0.5
+                        }}>
                             Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Toggleup</a>
                         </div>
                     )}
+                </div>
+            );
+        };
+
+        // Background image mode
+        const backgroundStyle = imagePosition === 'background' && content.image?.url ? {
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${content.image.url})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: '#ffffff'
+        } : {};
+
+        return (
+            <div class="popup-container modal" style={{ ...containerStyle, ...backgroundStyle }} role="dialog" aria-modal="true">
+                {renderCloseButton()}
+
+                <div style={contentLayoutStyle}>
+                    {imagePosition !== 'background' && renderHeroImage()}
+                    {renderTextContent()}
                 </div>
             </div>
         );

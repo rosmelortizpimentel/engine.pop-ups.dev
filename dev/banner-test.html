@@ -463,6 +463,7 @@
                     <option value="bottom">Posición Abajo</option>
                     <option value="noClose">Sin Cerrar</option>
                     <option value="niubizBranding">🎨 Niubiz</option>
+                    <option value="inlineMode">📌 Inline (no fijo)</option>
                 </select>
             </div>
 
@@ -545,6 +546,15 @@
                     { text: "Ver equipos", action: "link", url: "/equipos", style: { backgroundColor: "#F1F4F7", textColor: "#0F206C", borderRadius: "9999px" } }
                 ],
                 style: { backgroundColor: "#ffffff", fontFamily: "Lato" }
+            },
+            inlineMode: {
+                type: "top_bar", position: "top", fixed: false, showCloseButton: true,
+                content: {
+                    headline: { text: "📌 Banner Inline", style: { color: "#1e40af", fontWeight: "700" } },
+                    body: { text: "Este banner fluye con el contenido de la página", style: { color: "#3b82f6" } }
+                },
+                buttons: [{ text: "Entendido", action: "close", style: { backgroundColor: "#3b82f6", textColor: "#ffffff" } }],
+                style: { backgroundColor: "#dbeafe" }
             }
         };
 

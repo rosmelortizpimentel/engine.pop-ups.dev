@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggleup - Modal Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .sidebar h1 {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .preset-btn:hover {
+            border-color: #2196F3;
+            color: #fff;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            padding: 12px 16px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 12px;
+        }
+
+        .toolbar button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-execute {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-execute:hover {
+            background: #1976D2;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .json-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+
+        .json-panel h3 {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #888;
+            background: #1a1a1a;
+        }
+
+        .json-panel textarea {
+            flex: 1;
+            background: #0f0f0f;
+            border: none;
+            color: #e0e0e0;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            resize: none;
+        }
+
+        .json-panel textarea:focus {
+            outline: none;
+        }
+
+        .preview-panel {
+            flex: 1;
+            background: #f5f5f5;
+            position: relative;
+        }
+
+        .preview-panel h3 {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #888;
+            background: #1a1a1a;
+        }
+
+        .error-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4444;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="sidebar">
+            <h1>🎨 Modal Presets</h1>
+            <button class="preset-btn" onclick="loadPreset('simple')">Simple</button>
+            <button class="preset-btn" onclick="loadPreset('withImage')">Con Imagen Top</button>
+            <button class="preset-btn" onclick="loadPreset('imageLeft')">Imagen Izquierda</button>
+            <button class="preset-btn" onclick="loadPreset('imageBackground')">Imagen Fondo</button>
+            <button class="preset-btn" onclick="loadPreset('emailCapture')">Email Capture</button>
+            <button class="preset-btn" onclick="loadPreset('features')">Con Features</button>
+            <button class="preset-btn" onclick="loadPreset('fullExample')">🌟 Ejemplo Completo</button>
+        </div>
+
+        <div class="main">
+            <div class="toolbar">
+                <button class="btn-execute" onclick="executePopup()">▶ Mostrar Modal</button>
+            </div>
+
+            <div class="content">
+                <div class="json-panel">
+                    <h3>📄 JSON Configuration</h3>
+                    <textarea id="json-editor"></textarea>
+                </div>
+                <div class="preview-panel">
+                    <h3>Click "Mostrar Modal" para ver el popup</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-toast" id="error-toast"></div>
+
+    <script>
+        const PRESETS = {
+            simple: {
+                type: "modal",
+                size: "medium",
+                showCloseButton: true,
+                content: {
+                    headline: { text: "¡Bienvenido!", style: { color: "#1a1a1a" } },
+                    body: { text: "Gracias por visitar nuestra página.", style: { color: "#666666" } }
+                },
+                buttons: [
+                    { text: "Continuar", action: "close", style: { backgroundColor: "#2196F3", textColor: "#ffffff" } }
+                ],
+                style: { backgroundColor: "#ffffff", borderRadius: "16px" }
+            },
+
+            withImage: {
+                type: "modal",
+                size: "medium",
+                showCloseButton: true,
+                content: {
+                    headline: { text: "¡Oferta Especial!", style: { color: "#1a1a1a", fontSize: "28px" } },
+                    body: { text: "50% de descuento en todos los productos solo por hoy.", style: { color: "#666666" } },
+                    image: {
+                        url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=400&fit=crop",
+                        position: "top",
+                        height: "200px",
+                        objectFit: "cover"
+                    }
+                },
+                buttons: [
+                    { text: "Obtener Oferta", action: "link", url: "/offer", style: { backgroundColor: "#ef4444", textColor: "#ffffff", borderRadius: "9999px" } },
+                    { text: "Quizás después", action: "close", primary: false }
+                ],
+                style: { backgroundColor: "#ffffff", borderRadius: "20px" }
+            },
+
+            imageLeft: {
+                type: "modal",
+                size: "large",
+                showCloseButton: true,
+                content: {
+                    headline: { text: "Descubre Más", style: { color: "#1a1a1a", textAlign: "left" } },
+                    body: { text: "Explora nuestra nueva colección de productos exclusivos.", style: { color: "#666666", textAlign: "left" } },
+                    image: {
+                        url: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=600&fit=crop",
+                        position: "left",
+                        width: "45%"
+                    }
+                },
+                buttons: [
+                    { text: "Ver Colección", action: "link", url: "/collection", style: { backgroundColor: "#8b5cf6", textColor: "#ffffff" } }
+                ],
+                style: { backgroundColor: "#ffffff", textAlign: "left" }
+            },
+
+            imageBackground: {
+                type: "modal",
+                size: "medium",
+                showCloseButton: true,
+                content: {
+                    headline: { text: "Black Friday", style: { color: "#ffffff", fontSize: "36px" } },
+                    body: { text: "Las mejores ofertas del año te esperan", style: { color: "#eeeeee" } },
+                    image: {
+                        url: "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800&h=600&fit=crop",
+                        position: "background"
+                    }
+                },
+                buttons: [
+                    { text: "Ver Ofertas", action: "link", url: "/blackfriday", style: { backgroundColor: "#ffffff", textColor: "#1a1a1a", fontWeight: "700" } }
+                ],
+                style: { borderRadius: "16px", padding: "48px" }
+            },
+
+            emailCapture: {
+                type: "modal",
+                size: "small",
+                showCloseButton: true,
+                content: {
+                    headline: { text: "Suscríbete", style: { color: "#1a1a1a" } },
+                    body: { text: "Recibe ofertas exclusivas en tu email.", style: { color: "#666666" } },
+                    input: {
+                        enabled: true,
+                        type: "email",
+                        placeholder: "tu@email.com",
+                        required: true,
+                        style: { borderRadius: "8px" }
+                    }
+                },
+                buttons: [
+                    { text: "Suscribirme", action: "submit", style: { backgroundColor: "#22c55e", textColor: "#ffffff", width: "100%" } }
+                ],
+                footer: {
+                    text: "No spam. Puedes cancelar cuando quieras.",
+                    style: { color: "#999999", fontSize: "11px" }
+                },
+                style: { backgroundColor: "#ffffff" }
+            },
+
+            features: {
+                type: "modal",
+                size: "medium",
+                showCloseButton: true,
+                content: {
+                    headline: { text: "Plan Premium", style: { color: "#1a1a1a" } },
+                    body: { text: "Desbloquea todas las funcionalidades:", style: { color: "#666666" } },
+                    features: [
+                        { icon: "✓", text: "Proyectos ilimitados" },
+                        { icon: "✓", text: "Soporte prioritario 24/7" },
+                        { icon: "✓", text: "Integraciones avanzadas" },
+                        { icon: "✓", text: "Analytics en tiempo real" }
+                    ]
+                },
+                buttons: [
+                    { text: "Comenzar Gratis", action: "link", url: "/signup", style: { backgroundColor: "#2196F3", textColor: "#ffffff" } },
+                    { text: "Ver Precios", action: "link", url: "/pricing", primary: false }
+                ],
+                style: { backgroundColor: "#ffffff", textAlign: "left" }
+            },
+
+            fullExample: {
+                type: "modal",
+                size: "large",
+                showCloseButton: true,
+                closeOnOverlay: true,
+                animation: "scale",
+                overlay: {
+                    enabled: true,
+                    color: "rgba(0, 0, 0, 0.6)",
+                    blur: "4px"
+                },
+                content: {
+                    image: {
+                        url: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=500&fit=crop",
+                        position: "left",
+                        width: "40%",
+                        objectFit: "cover",
+                        alt: "Producto destacado"
+                    },
+                    headline: {
+                        text: "¡Llegó lo nuevo!",
+                        style: {
+                            color: "#0F206C",
+                            fontSize: "28px",
+                            fontWeight: "800",
+                            textAlign: "left"
+                        }
+                    },
+                    body: {
+                        text: "Descubre nuestra colección exclusiva con envío gratis a todo el país.",
+                        style: {
+                            color: "#555555",
+                            fontSize: "16px",
+                            lineHeight: "1.6",
+                            textAlign: "left"
+                        }
+                    },
+                    features: [
+                        { icon: "🚚", text: "Envío gratis en 24-48h" },
+                        { icon: "💳", text: "Hasta 12 cuotas sin interés" },
+                        { icon: "🔄", text: "Devolución gratis 30 días" }
+                    ],
+                    input: {
+                        enabled: true,
+                        type: "email",
+                        placeholder: "Tu email para ofertas exclusivas",
+                        required: true,
+                        style: {
+                            borderRadius: "12px",
+                            padding: "16px"
+                        }
+                    }
+                },
+                buttons: [
+                    {
+                        text: "Ver Colección",
+                        action: "link",
+                        url: "/collection",
+                        style: {
+                            backgroundColor: "#0F206C",
+                            textColor: "#ffffff",
+                            borderRadius: "12px",
+                            padding: "16px 32px",
+                            fontSize: "16px",
+                            boxShadow: "0 4px 12px rgba(15, 32, 108, 0.3)"
+                        }
+                    },
+                    {
+                        text: "Quizás después",
+                        action: "close",
+                        primary: false,
+                        style: {
+                            textColor: "#888888"
+                        }
+                    }
+                ],
+                footer: {
+                    text: "Al continuar aceptas nuestros",
+                    links: [
+                        { text: "Términos", url: "/terms" },
+                        { text: "Privacidad", url: "/privacy" }
+                    ],
+                    style: { color: "#aaaaaa" }
+                },
+                style: {
+                    backgroundColor: "#ffffff",
+                    fontFamily: "Inter, sans-serif",
+                    borderRadius: "24px",
+                    boxShadow: "0 30px 60px rgba(0, 0, 0, 0.3)",
+                    textAlign: "left"
+                }
+            }
+        };
+
+        const editor = document.getElementById('json-editor');
+
+        function loadPreset(name) {
+            const config = JSON.parse(JSON.stringify(PRESETS[name]));
+            editor.value = JSON.stringify(config, null, 2);
+        }
+
+        function executePopup() {
+            try {
+                const config = JSON.parse(editor.value);
+                if (window.ToggleupSDK && window.ToggleupSDK.showPopup) {
+                    window.ToggleupSDK.showPopup(config);
+                } else {
+                    showError('SDK not loaded. Run: npm run build:v1');
+                }
+            } catch (e) {
+                showError('JSON inválido: ' + e.message);
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-toast');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        // Load default
+        loadPreset('simple');
+    </script>
+
+    <script src="/v1/sdk.js"></script>
+</body>
+
+</html>
