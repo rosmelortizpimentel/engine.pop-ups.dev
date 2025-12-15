@@ -383,6 +383,16 @@ if (document.readyState === 'loading') {
     init();
 }
 
+/**
+ * Get popup configs from API without showing them
+ * Useful for debugging or manual control
+ */
+async function getConfigs() {
+    const apiKey = getApiKey();
+    if (!apiKey) return [];
+    return await fetchPopupConfigs(apiKey);
+}
+
 // ============================================
 // Expose SDK API globally for manual usage
 // ============================================
@@ -391,9 +401,10 @@ window.ToggleupSDK = {
     init,
     showPopup,
     setBranding,
-    getApiKey
+    getApiKey,
+    getConfigs
 };
 
 // Export for ES modules/testing
-export { init, showPopup, setBranding, getApiKey };
+export { init, showPopup, setBranding, getApiKey, getConfigs };
 
