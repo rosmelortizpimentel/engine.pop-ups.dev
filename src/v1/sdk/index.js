@@ -158,22 +158,35 @@ async function fetchPopupConfigs(apiKey) {
 
 /**
  * Create isolated Shadow DOM container for popup
+ * @param {boolean} isFixed - If false, insert at body start as inline element
  */
-function createPopupHost() {
+function createPopupHost(isFixed = true) {
     const host = document.createElement('div');
     host.id = 'toggleup-host';
-    host.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    overflow: visible;
-    z-index: 2147483647;
-    pointer-events: none;
-  `;
 
-    document.body.appendChild(host);
+    if (isFixed) {
+        // Fixed mode: overlay at top of viewport
+        host.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            overflow: visible;
+            z-index: 2147483647;
+            pointer-events: none;
+        `;
+        document.body.appendChild(host);
+    } else {
+        // Inline mode: insert at very beginning of body, flows with content
+        host.style.cssText = `
+            position: relative;
+            display: block;
+            width: 100%;
+            z-index: 2147483647;
+        `;
+        document.body.insertBefore(host, document.body.firstChild);
+    }
 
     // Create Shadow DOM for style isolation
     const shadowRoot = host.attachShadow({ mode: 'open' });
@@ -229,7 +242,13 @@ function setBranding(branding) {
  * @param {Object} branding - Optional branding (uses global if not provided)
  */
 function showPopup(config, branding = null) {
-    const { host, container } = createPopupHost();
+    // Support both new format (flat) and legacy format (design object)
+    const design = config.design || config;
+
+    // Determine if banner should be fixed or inline
+    const isFixed = design.fixed !== false;
+
+    const { host, container } = createPopupHost(isFixed);
 
     // Use provided branding or fall back to global
     const activeBranding = branding || globalBranding;
@@ -239,12 +258,10 @@ function showPopup(config, branding = null) {
         recordPopupShown(config.id, config.rules.frequency);
     }
 
-    // Support both new format (flat) and legacy format (design object)
-    const design = config.design || config;
-
-    // For top_bar with pushContent, add margin to body
+    // For fixed top_bar with pushContent, add margin to body
+    // (Not needed for inline mode since it naturally pushes content)
     let bodyMarginCleanup = null;
-    if (design.type === 'top_bar' && design.pushContent !== false) {
+    if (isFixed && design.type === 'top_bar' && design.pushContent !== false) {
         const position = design.position || 'top';
         const barHeight = '50px'; // Approximate height of top bar
 
@@ -272,11 +289,6 @@ function showPopup(config, branding = null) {
 
     // Handle close
     const handleClose = () => {
-        // Remove scroll listener if exists
-        if (scrollCleanup) {
-            scrollCleanup();
-        }
-
         // Restore body margin if applicable
         if (bodyMarginCleanup) {
             bodyMarginCleanup();
@@ -287,25 +299,6 @@ function showPopup(config, branding = null) {
             destroyPopup(host);
         }, 250);
     };
-
-    // If fixed: false, hide the banner on scroll
-    let scrollCleanup = null;
-    if (design.type === 'top_bar' && design.fixed === false) {
-        const scrollThreshold = 100; // Hide after scrolling 100px
-        const initialScrollY = window.scrollY;
-
-        const handleScroll = () => {
-            const scrolledDistance = Math.abs(window.scrollY - initialScrollY);
-            if (scrolledDistance > scrollThreshold) {
-                handleClose();
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        scrollCleanup = () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }
 
     // Render the popup with branding
     renderPopup(config, container, handleClose, activeBranding);

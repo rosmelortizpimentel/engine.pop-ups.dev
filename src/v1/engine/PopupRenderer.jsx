@@ -243,10 +243,9 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
         const containerStyle = {
             fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
             boxSizing: 'border-box',
-            // Always use fixed position in live mode (inside Shadow DOM)
-            // The 'fixed' prop controls whether it stays on scroll, not CSS position
-            position: isPreview ? 'relative' : 'fixed',
-            [position]: 0,
+            // Fixed: stays at viewport edge. Inline: flows with document
+            position: isPreview ? 'relative' : (isFixed ? 'fixed' : 'relative'),
+            ...(isFixed ? { [position]: 0 } : {}),
             left: 0,
             right: 0,
             width: design.width || '100%',
