@@ -85,20 +85,23 @@ const MOCK_POPUP_CONFIG = {
 
 /**
  * Extract API key from the current script tag
- * Uses document.currentScript for IIFE bundles, falls back to querySelector
+ * Supports both data-api-key and data-project-id (alias)
  */
 function getApiKey() {
+    const getKeyFromElement = (el) => {
+        if (!el) return null;
+        return el.getAttribute('data-api-key') || el.getAttribute('data-project-id');
+    };
+
     // First try: CURRENT_SCRIPT captured at module load time
-    if (CURRENT_SCRIPT && CURRENT_SCRIPT.hasAttribute('data-api-key')) {
-        return CURRENT_SCRIPT.getAttribute('data-api-key');
-    }
+    const keyFromCurrent = getKeyFromElement(CURRENT_SCRIPT);
+    if (keyFromCurrent) return keyFromCurrent;
 
     // Second try: querySelector (fallback for when script runs after load)
-    const scripts = document.querySelectorAll('script[data-api-key]');
+    const scripts = document.querySelectorAll('script[data-api-key], script[data-project-id]');
     const script = scripts[scripts.length - 1];
-    if (script) {
-        return script.getAttribute('data-api-key');
-    }
+    const keyFromQuery = getKeyFromElement(script);
+    if (keyFromQuery) return keyFromQuery;
 
     // Development fallback
     if (DEV_API_KEY) {
@@ -108,7 +111,7 @@ function getApiKey() {
         return 'mock-api-key';
     }
 
-    console.error('[Toggleup] No script tag with data-api-key found');
+    console.error('[Toggleup] No script tag with data-api-key or data-project-id found');
     return null;
 }
 
