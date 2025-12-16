@@ -310,20 +310,36 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
 
                     {/* Buttons (max 3) */}
                     {buttons.slice(0, 3).map((btn, i) => renderButton(btn, i))}
-
-                    {/* Watermark for banner */}
-                    {design.showWatermark && (
-                        <span class="popup-watermark banner" style={{
-                            fontSize: '9px',
-                            opacity: 0.4,
-                            marginLeft: '8px'
-                        }}>
-                            Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>ToggleUp.io</a>
-                        </span>
-                    )}
                 </div>
 
                 {renderCloseButton()}
+
+                {/* Watermark badge for banner - floating bottom right */}
+                {design.showWatermark && (
+                    <a
+                        href="https://toggleup.io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Powered by ToggleUp.io"
+                        class="popup-watermark-badge"
+                        style={{
+                            position: 'absolute',
+                            bottom: '4px',
+                            right: '4px',
+                            fontSize: '8px',
+                            fontWeight: '600',
+                            padding: '2px 5px',
+                            borderRadius: '3px',
+                            backgroundColor: 'rgba(0,0,0,0.08)',
+                            color: style.textColor || '#666',
+                            textDecoration: 'none',
+                            opacity: 0.6,
+                            transition: 'opacity 150ms ease'
+                        }}
+                    >
+                        TU
+                    </a>
+                )}
             </div>
         );
     };
