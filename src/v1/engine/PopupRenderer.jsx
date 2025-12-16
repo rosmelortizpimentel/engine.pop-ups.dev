@@ -394,7 +394,8 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                 imageStyle.maxHeight = configuredHeight;
                 imageStyle.objectFit = 'contain';
                 imageStyle.alignSelf = 'center';
-                // No borderRadius - images should not be affected by modal border radius
+                // Apply padding margin for left/right images
+                imageStyle.margin = imagePosition === 'left' ? `${paddingNum}px 0 ${paddingNum}px ${paddingNum}px` : `${paddingNum}px ${paddingNum}px ${paddingNum}px 0`;
             }
 
             return (
@@ -595,7 +596,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                 <div style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: (style.backgroundColor || '#ffffff') + 'E8', // 92% opacity
+                    backgroundColor: (style.backgroundColor || '#ffffff') + '80', // 50% opacity for visible watermark
                     zIndex: 0,
                     borderRadius: style.borderRadius || '16px'
                 }} />
