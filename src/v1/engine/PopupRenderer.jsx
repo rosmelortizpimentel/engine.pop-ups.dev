@@ -365,14 +365,21 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
         const renderHeroImage = () => {
             if (!content.image?.url) return null;
 
+            const configuredHeight = content.image.height || '200px';
+
             const imageStyle = {
-                objectFit: content.image.objectFit || 'cover',
-                flexShrink: 0
+                flexShrink: 0,
+                display: 'block'
             };
 
             if (imagePosition === 'top') {
-                imageStyle.width = '100%';
-                imageStyle.height = content.image.height || '180px';
+                // Centered image with max-height, maintain aspect ratio
+                imageStyle.width = 'auto';
+                imageStyle.maxWidth = '100%';
+                imageStyle.maxHeight = configuredHeight;
+                imageStyle.height = 'auto';
+                imageStyle.objectFit = 'contain';
+                imageStyle.margin = '0 auto';
                 imageStyle.borderRadius = `${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0 0`;
             } else if (imagePosition === 'background') {
                 return null; // Handled separately
@@ -381,6 +388,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                 imageStyle.width = content.image.width || '40%';
                 imageStyle.height = '100%';
                 imageStyle.minHeight = '250px';
+                imageStyle.objectFit = content.image.objectFit || 'cover';
                 imageStyle.borderRadius = imagePosition === 'left'
                     ? `${style.borderRadius || '16px'} 0 0 ${style.borderRadius || '16px'}`
                     : `0 ${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0`;

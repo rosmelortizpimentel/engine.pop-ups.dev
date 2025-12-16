@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggleup - Catálogo de Popups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f6f8;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #0F206C;
+            color: white;
+            padding: 20px 32px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: white;
+            color: #666;
+        }
+
+        .tab.active {
+            background: #0F206C;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-preview {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-preview.banner-preview {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .card-mini {
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        .card-body {
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .card-tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #f3f4f6;
+            color: #666;
+        }
+
+        .card-tag.modal {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .card-tag.banner {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.15s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background: #0F206C;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 9999;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📚 Catálogo de Popups</h1>
+        <p>Explora templates prediseñados. Click para preview, copia el JSON para usar en tu proyecto.</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="filterType('all')">Todos</button>
+            <button class="tab" onclick="filterType('modal')">Modals</button>
+            <button class="tab" onclick="filterType('top_bar')">Banners</button>
+        </div>
+
+        <div class="grid" id="catalog"></div>
+    </div>
+
+    <div class="toast" id="toast">JSON copiado!</div>
+
+    <script>
+        const CATALOG = [
+            // ========== MODALS ==========
+            {
+                id: 'modal-simple',
+                name: 'Modal Simple',
+                description: 'Modal básico con título, texto y botón',
+                tags: ['simple', 'cta'],
+                config: {
+                    type: 'modal',
+                    size: 'medium',
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '¡Bienvenido!', style: { color: '#1a1a1a' } },
+                        body: { text: 'Gracias por visitarnos. Descubre nuestras novedades.', style: { color: '#666' } }
+                    },
+                    buttons: [{ text: 'Explorar', action: 'close', style: { backgroundColor: '#3b82f6', textColor: '#fff' } }],
+                    style: { backgroundColor: '#fff', borderRadius: '16px' }
+                }
+            },
+            {
+                id: 'modal-newsletter',
+                name: 'Newsletter Signup',
+                description: 'Captura de email con imagen',
+                tags: ['email', 'marketing'],
+                config: {
+                    type: 'modal',
+                    size: 'large',
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: 'Únete a nuestra newsletter', style: { color: '#1a1a1a' } },
+                        body: { text: 'Recibe ofertas exclusivas y novedades directamente en tu inbox.', style: { color: '#666' } },
+                        image: { url: 'https://images.unsplash.com/photo-1557200134-90327ee9fafa?w=400&h=200&fit=crop', position: 'top', height: '180px' },
+                        input: { enabled: true, type: 'email', placeholder: 'tu@email.com' }
+                    },
+                    buttons: [{ text: 'Suscribirme', action: 'close', style: { backgroundColor: '#22c55e', textColor: '#fff', width: '100%' } }],
+                    footer: { text: 'Sin spam. Cancela cuando quieras.' },
+                    style: { backgroundColor: '#fff', borderRadius: '20px' }
+                }
+            },
+            {
+                id: 'modal-promo',
+                name: 'Promoción Black Friday',
+                description: 'Modal promocional con features',
+                tags: ['promo', 'descuento'],
+                config: {
+                    type: 'modal',
+                    size: 'large',
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '🔥 Black Friday Sale', style: { color: '#0F206C', fontSize: '28px' } },
+                        body: { text: 'Hasta 50% de descuento en toda la tienda. Solo este fin de semana.', style: { color: '#555' } },
+                        image: { url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop', position: 'left', height: '100%' },
+                        features: [
+                            { icon: '🚚', text: 'Envío gratis +$50' },
+                            { icon: '💳', text: '12 cuotas sin interés' },
+                            { icon: '🔄', text: 'Devolución gratis' }
+                        ]
+                    },
+                    buttons: [
+                        { text: 'Ver Ofertas', action: 'link', url: '/ofertas', style: { backgroundColor: '#0F206C', textColor: '#fff' } },
+                        { text: 'Quizás después', action: 'close', style: { backgroundColor: 'transparent', textColor: '#888' } }
+                    ],
+                    style: { backgroundColor: '#fff', borderRadius: '20px' }
+                }
+            },
+            {
+                id: 'modal-exit-intent',
+                name: 'Exit Intent',
+                description: 'Retener usuarios que abandonan',
+                tags: ['exit', 'retención'],
+                config: {
+                    type: 'modal',
+                    size: 'medium',
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '¡Espera! No te vayas aún', style: { color: '#ef4444' } },
+                        body: { text: 'Tenemos un 20% de descuento especial solo para ti.', style: { color: '#666' } },
+                        input: { enabled: true, type: 'email', placeholder: 'Email para recibir tu código' }
+                    },
+                    buttons: [
+                        { text: 'Obtener 20% OFF', action: 'close', style: { backgroundColor: '#ef4444', textColor: '#fff', width: '100%' } }
+                    ],
+                    style: { backgroundColor: '#fff', borderRadius: '16px' }
+                }
+            },
+            {
+                id: 'modal-announcement',
+                name: 'Anuncio Importante',
+                description: 'Comunicado o actualización',
+                tags: ['anuncio', 'info'],
+                config: {
+                    type: 'modal',
+                    size: 'medium',
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '📢 Nueva Funcionalidad', style: { color: '#1a1a1a' } },
+                        body: { text: 'Ahora puedes guardar tus productos favoritos y recibirás alertas cuando bajen de precio.', style: { color: '#666' } }
+                    },
+                    buttons: [
+                        { text: 'Probar Ahora', action: 'link', url: '/favoritos', style: { backgroundColor: '#8b5cf6', textColor: '#fff' } },
+                        { text: 'Entendido', action: 'close', style: { backgroundColor: '#f3f4f6', textColor: '#333' } }
+                    ],
+                    style: { backgroundColor: '#fff', borderRadius: '16px' }
+                }
+            },
+            {
+                id: 'modal-feedback',
+                name: 'Solicitar Feedback',
+                description: 'Pedir opinión al usuario',
+                tags: ['feedback', 'encuesta'],
+                config: {
+                    type: 'modal',
+                    size: 'medium',
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '¿Cómo fue tu experiencia?', style: { color: '#1a1a1a' } },
+                        body: { text: 'Tu opinión nos ayuda a mejorar. Toma solo 30 segundos.', style: { color: '#666' } }
+                    },
+                    buttons: [
+                        { text: '😃 Excelente', action: 'close', style: { backgroundColor: '#22c55e', textColor: '#fff' } },
+                        { text: '😐 Regular', action: 'close', style: { backgroundColor: '#f59e0b', textColor: '#fff' } },
+                        { text: '😞 Mala', action: 'close', style: { backgroundColor: '#ef4444', textColor: '#fff' } }
+                    ],
+                    style: { backgroundColor: '#fff', borderRadius: '16px' }
+                }
+            },
+
+            // ========== BANNERS ==========
+            {
+                id: 'banner-promo',
+                name: 'Banner Promocional',
+                description: 'Banner superior con oferta',
+                tags: ['promo', 'descuento'],
+                config: {
+                    type: 'top_bar',
+                    position: 'top',
+                    fixed: true,
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '🎉 SALE', style: { color: '#1a1a1a', fontWeight: '700' } },
+                        body: { text: '30% OFF en toda la tienda. Usa código: SALE30', style: { color: '#555' } }
+                    },
+                    buttons: [{ text: 'Comprar Ahora', action: 'link', url: '/tienda', style: { backgroundColor: '#ef4444', textColor: '#fff', borderRadius: '9999px' } }],
+                    style: { backgroundColor: '#fef3c7', padding: '12px 20px' }
+                }
+            },
+            {
+                id: 'banner-shipping',
+                name: 'Envío Gratis',
+                description: 'Informar envío gratis',
+                tags: ['envío', 'info'],
+                config: {
+                    type: 'top_bar',
+                    position: 'top',
+                    fixed: true,
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '🚚 Envío GRATIS', style: { color: '#fff', fontWeight: '700' } },
+                        body: { text: 'en pedidos mayores a $50', style: { color: '#dcfce7' } }
+                    },
+                    buttons: [],
+                    style: { backgroundColor: '#16a34a', padding: '10px 20px' }
+                }
+            },
+            {
+                id: 'banner-cookie',
+                name: 'Aviso de Cookies',
+                description: 'Consentimiento GDPR',
+                tags: ['legal', 'cookies'],
+                config: {
+                    type: 'top_bar',
+                    position: 'bottom',
+                    fixed: true,
+                    showCloseButton: false,
+                    content: {
+                        headline: { text: '🍪', style: { fontSize: '18px' } },
+                        body: { text: 'Usamos cookies para mejorar tu experiencia.', style: { color: '#333' } }
+                    },
+                    buttons: [
+                        { text: 'Aceptar', action: 'close', style: { backgroundColor: '#3b82f6', textColor: '#fff' } },
+                        { text: 'Rechazar', action: 'close', style: { backgroundColor: '#f3f4f6', textColor: '#333' } }
+                    ],
+                    style: { backgroundColor: '#fff', padding: '12px 20px', boxShadow: '0 -2px 10px rgba(0,0,0,0.1)' }
+                }
+            },
+            {
+                id: 'banner-flash-sale',
+                name: 'Flash Sale',
+                description: 'Venta relámpago urgente',
+                tags: ['urgente', 'promo'],
+                config: {
+                    type: 'top_bar',
+                    position: 'top',
+                    fixed: true,
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '⚡ FLASH SALE', style: { color: '#fef3c7', fontWeight: '700' } },
+                        body: { text: 'Solo quedan 2 horas. Hasta 70% OFF.', style: { color: '#fef3c7' } }
+                    },
+                    buttons: [{ text: 'Ver Ofertas', action: 'link', url: '/flash', style: { backgroundColor: '#fef3c7', textColor: '#1a1a1a', borderRadius: '6px' } }],
+                    style: { backgroundColor: '#dc2626', padding: '14px 20px' }
+                }
+            },
+            {
+                id: 'banner-app',
+                name: 'Descargar App',
+                description: 'Promocionar app móvil',
+                tags: ['app', 'móvil'],
+                config: {
+                    type: 'top_bar',
+                    position: 'top',
+                    fixed: true,
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '📱 ¡Descarga nuestra App!', style: { color: '#1a1a1a' } },
+                        body: { text: 'Compra más rápido + ofertas exclusivas', style: { color: '#666' } }
+                    },
+                    buttons: [{ text: 'Descargar', action: 'link', url: '/app', style: { backgroundColor: '#1a1a1a', textColor: '#fff', borderRadius: '9999px' } }],
+                    style: { backgroundColor: '#fff', padding: '12px 20px' }
+                }
+            },
+            {
+                id: 'banner-maintenance',
+                name: 'Mantenimiento',
+                description: 'Aviso de mantenimiento',
+                tags: ['aviso', 'sistema'],
+                config: {
+                    type: 'top_bar',
+                    position: 'top',
+                    fixed: true,
+                    showCloseButton: true,
+                    content: {
+                        headline: { text: '🔧 Mantenimiento Programado', style: { color: '#1a1a1a' } },
+                        body: { text: 'Hoy 3AM-5AM. Algunos servicios no estarán disponibles.', style: { color: '#666' } }
+                    },
+                    buttons: [],
+                    style: { backgroundColor: '#fef3c7', padding: '10px 20px' }
+                }
+            }
+        ];
+
+        let currentFilter = 'all';
+
+        function filterType(type) {
+            currentFilter = type;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            render();
+        }
+
+        function render() {
+            const items = currentFilter === 'all'
+                ? CATALOG
+                : CATALOG.filter(c => c.config.type === currentFilter);
+
+            document.getElementById('catalog').innerHTML = items.map(item => `
+                <div class="card" data-type="${item.config.type}">
+                    <div class="card-preview ${item.config.type === 'top_bar' ? 'banner-preview' : ''}">
+                        <div style="color: white; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">${item.config.type === 'modal' ? '🪟' : '📢'}</div>
+                            <div style="font-size: 14px; opacity: 0.8;">${item.config.type === 'modal' ? 'Modal' : 'Banner'}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title">${item.name}</div>
+                        <div class="card-desc">${item.description}</div>
+                        <div class="card-meta">
+                            <span class="card-tag ${item.config.type}">${item.config.type === 'modal' ? 'Modal' : 'Banner'}</span>
+                            ${item.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="preview('${item.id}')">▶ Preview</button>
+                            <button class="btn btn-secondary" onclick="copyJson('${item.id}')">📋 Copiar JSON</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function preview(id) {
+            const item = CATALOG.find(c => c.id === id);
+            if (item && window.ToggleupSDK) {
+                window.ToggleupSDK.showPopup(item.config);
+            }
+        }
+
+        function copyJson(id) {
+            const item = CATALOG.find(c => c.id === id);
+            if (item) {
+                navigator.clipboard.writeText(JSON.stringify(item.config, null, 2));
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                setTimeout(() => toast.style.display = 'none', 2000);
+            }
+        }
+
+        render();
+    </script>
+    <script src="/v1/sdk.js" data-manual></script>
+</body>
+
+</html>
