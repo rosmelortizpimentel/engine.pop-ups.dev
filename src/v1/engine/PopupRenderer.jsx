@@ -366,6 +366,8 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             if (!content.image?.url) return null;
 
             const configuredHeight = content.image.height || '200px';
+            const customPadding = style.padding || '24px';
+            const paddingNum = parseInt(customPadding) || 24;
 
             const imageStyle = {
                 flexShrink: 0,
@@ -375,11 +377,11 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             if (imagePosition === 'top') {
                 // Centered image with max-height, maintain aspect ratio
                 imageStyle.width = 'auto';
-                imageStyle.maxWidth = 'calc(100% - 48px)'; // Leave 24px padding on each side
+                imageStyle.maxWidth = `calc(100% - ${paddingNum * 2}px)`; // Use custom padding on each side
                 imageStyle.maxHeight = configuredHeight;
                 imageStyle.height = 'auto';
                 imageStyle.objectFit = 'contain';
-                imageStyle.margin = '24px auto 0 auto'; // 24px top, centered horizontally
+                imageStyle.margin = `${paddingNum}px auto 0 auto`; // Custom padding top, centered horizontally
                 // No borderRadius - images should not be affected by modal border radius
             } else if (imagePosition === 'background') {
                 return null; // Handled separately
@@ -407,7 +409,8 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
 
         // Text content area
         const renderTextContent = () => {
-            const padding = isHorizontalImage ? '24px' : (style.padding || '32px');
+            const customPadding = style.padding || '24px';
+            const padding = isHorizontalImage ? customPadding : customPadding;
             const textAlign = style.textAlign || 'center';
 
             return (
