@@ -425,6 +425,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                             margin: '0 0 12px 0',
                             fontSize: content.headline.style?.fontSize || '24px',
                             fontWeight: content.headline.style?.fontWeight || '700',
+                            fontFamily: style.fontFamily || 'inherit',
                             lineHeight: '1.3',
                             color: content.headline.style?.color || style.textColor || '#1a1a1a',
                             textAlign: content.headline.style?.textAlign || textAlign,
