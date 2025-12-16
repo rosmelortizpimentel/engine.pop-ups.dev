@@ -380,7 +380,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                 imageStyle.height = 'auto';
                 imageStyle.objectFit = 'contain';
                 imageStyle.margin = '24px auto 0 auto'; // 24px top, centered horizontally
-                imageStyle.borderRadius = style.borderRadius || '8px';
+                // No borderRadius - images should not be affected by modal border radius
             } else if (imagePosition === 'background') {
                 return null; // Handled separately
             } else {
@@ -392,7 +392,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                 imageStyle.maxHeight = configuredHeight;
                 imageStyle.objectFit = 'contain';
                 imageStyle.alignSelf = 'center';
-                imageStyle.borderRadius = style.borderRadius || '8px';
+                // No borderRadius - images should not be affected by modal border radius
             }
 
             return (
