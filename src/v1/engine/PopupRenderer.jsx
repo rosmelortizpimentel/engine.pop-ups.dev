@@ -375,12 +375,12 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             if (imagePosition === 'top') {
                 // Centered image with max-height, maintain aspect ratio
                 imageStyle.width = 'auto';
-                imageStyle.maxWidth = '100%';
+                imageStyle.maxWidth = 'calc(100% - 48px)'; // Leave 24px padding on each side
                 imageStyle.maxHeight = configuredHeight;
                 imageStyle.height = 'auto';
                 imageStyle.objectFit = 'contain';
-                imageStyle.margin = '0 auto';
-                imageStyle.borderRadius = `${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0 0`;
+                imageStyle.margin = '24px auto 0 auto'; // 24px top, centered horizontally
+                imageStyle.borderRadius = style.borderRadius || '8px';
             } else if (imagePosition === 'background') {
                 return null; // Handled separately
             } else {
