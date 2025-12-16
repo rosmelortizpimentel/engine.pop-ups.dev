@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Target Container Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section h2 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Embedded container - simulates canvas */
+        .canvas-container {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(45deg, #e5e5e5 25%, transparent 25%),
+                linear-gradient(-45deg, #e5e5e5 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e5e5e5 75%),
+                linear-gradient(-45deg, transparent 75%, #e5e5e5 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status.success {
+            color: #10b981;
+        }
+
+        .status.error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 SDK Target Container Test</h1>
+
+    <div class="controls">
+        <button class="btn btn-primary" onclick="testEmbeddedModal()">Test Embedded Modal</button>
+        <button class="btn btn-primary" onclick="testEmbeddedBanner()">Test Embedded Banner</button>
+        <button class="btn btn-secondary" onclick="clearCanvas()">Clear Canvas</button>
+        <button class="btn btn-success" onclick="testFullscreenModal()">Test Fullscreen Modal</button>
+        <button class="btn btn-success" onclick="testFullscreenBanner()">Test Fullscreen Banner</button>
+    </div>
+
+    <div class="test-grid">
+        <div class="test-section">
+            <h2>Embedded Mode (Target Container)</h2>
+            <div id="canvas" class="canvas-container"></div>
+            <p class="status" id="embedded-status">Click a button to test embedded rendering</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Fullscreen Mode (Default)</h2>
+            <p style="color: #666; font-size: 14px;">
+                Fullscreen popups render as overlay on the entire page (original SDK behavior).
+                Click "Test Fullscreen" buttons to verify original functionality still works.
+            </p>
+            <p class="status" id="fullscreen-status">Click fullscreen buttons to test</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import SDK directly for development
+        import { showPopup } from '../src/v1/sdk/index.js';
+
+        // Sample popup configs
+        const modalConfig = {
+            id: 'test-modal',
+            name: 'Test Modal',
+            design: {
+                type: 'modal',
+                showCloseButton: true,
+                content: {
+                    headline: { text: '¡Bienvenido!', style: { color: '#1a1a1a' } },
+                    body: { text: 'Este es un modal renderizado en el canvas.', style: { color: '#666' } }
+                },
+                buttons: [
+                    { text: 'Aceptar', action: 'close', style: { backgroundColor: '#3b82f6', textColor: '#fff', borderRadius: '8px' } }
+                ],
+                colors: {
+                    background: '#ffffff',
+                    overlay: 'rgba(0,0,0,0.5)'
+                }
+            }
+        };
+
+        const bannerConfig = {
+            id: 'test-banner',
+            name: 'Test Banner',
+            design: {
+                type: 'top_bar',
+                position: 'top',
+                fixed: false,
+                showCloseButton: true,
+                content: {
+                    headline: { text: '🎉 Oferta especial', style: { color: '#fff' } },
+                    body: { text: '20% de descuento', style: { color: 'rgba(255,255,255,0.9)' } }
+                },
+                buttons: [
+                    { text: 'Ver más', action: 'link', url: '#', style: { backgroundColor: '#fff', textColor: '#3b82f6', borderRadius: '6px' } }
+                ],
+                colors: {
+                    background: '#3b82f6'
+                }
+            }
+        };
+
+        // Expose functions globally
+        window.testEmbeddedModal = () => {
+            const canvas = document.getElementById('canvas');
+            const status = document.getElementById('embedded-status');
+
+            const result = showPopup(modalConfig, { target: canvas });
+
+            if (result && result.cleanup) {
+                status.textContent = '✅ Modal rendered in canvas (embedded mode)';
+                status.className = 'status success';
+            } else {
+                status.textContent = '⚠️ No cleanup returned - check console';
+                status.className = 'status';
+            }
+        };
+
+        window.testEmbeddedBanner = () => {
+            const canvas = document.getElementById('canvas');
+            const status = document.getElementById('embedded-status');
+
+            const result = showPopup(bannerConfig, { target: canvas });
+
+            if (result && result.cleanup) {
+                status.textContent = '✅ Banner rendered in canvas (embedded mode)';
+                status.className = 'status success';
+            } else {
+                status.textContent = '⚠️ No cleanup returned - check console';
+                status.className = 'status';
+            }
+        };
+
+        window.clearCanvas = () => {
+            document.getElementById('canvas').innerHTML = '';
+            document.getElementById('embedded-status').textContent = 'Canvas cleared';
+            document.getElementById('embedded-status').className = 'status';
+        };
+
+        window.testFullscreenModal = () => {
+            const status = document.getElementById('fullscreen-status');
+            // No target = fullscreen mode
+            showPopup(modalConfig);
+            status.textContent = '✅ Fullscreen modal opened (original behavior)';
+            status.className = 'status success';
+        };
+
+        window.testFullscreenBanner = () => {
+            const status = document.getElementById('fullscreen-status');
+            // No target = fullscreen mode
+            showPopup(bannerConfig);
+            status.textContent = '✅ Fullscreen banner opened (original behavior)';
+            status.className = 'status success';
+        };
+
+        console.log('[Test] SDK loaded, functions ready');
+    </script>
+</body>
+
+</html>

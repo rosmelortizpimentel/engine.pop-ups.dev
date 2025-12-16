@@ -217,14 +217,15 @@ function createPopupHost(isFixed = true, isModal = false) {
 
 /**
  * Render a popup inside Shadow DOM
+ * @param {boolean} isEmbedded - If true, use relative positioning (for canvas/container rendering)
  */
-function renderPopup(config, container, onClose, branding = null) {
+function renderPopup(config, container, onClose, branding = null, isEmbedded = false) {
     render(
         h(PopupRenderer, {
             config,
             branding,
             onClose,
-            isPreview: false
+            isPreview: isEmbedded  // Use relative positioning when embedded
         }),
         container
     );
@@ -254,9 +255,18 @@ function setBranding(branding) {
 /**
  * Show a single popup with full lifecycle
  * @param {Object} config - Popup configuration
- * @param {Object} branding - Optional branding (uses global if not provided)
+ * @param {Object} options - Optional: { target, branding }
+ *   - target: DOM element to render inside (embedded mode)
+ *   - branding: Branding config (falls back to global)
  */
-function showPopup(config, branding = null) {
+function showPopup(config, options = {}) {
+    // Support legacy signature: showPopup(config, branding)
+    const opts = (options && typeof options === 'object' && !options.nodeType)
+        ? options
+        : { branding: options };
+
+    const { target, branding } = opts;
+
     // Support both new format (flat) and legacy format (design object)
     const design = config.design || config;
 
@@ -264,13 +274,45 @@ function showPopup(config, branding = null) {
     const isModal = design.type === 'modal';
     const isTopBar = design.type === 'top_bar';
 
+    // Use provided branding or fall back to global
+    const activeBranding = branding || globalBranding;
+
+    // === EMBEDDED MODE: Render inside target container ===
+    if (target && target.nodeType === 1) {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'toggleup-embedded';
+        wrapper.style.cssText = 'position:relative;width:100%;height:100%;';
+
+        // Clear target and append
+        target.innerHTML = '';
+        target.appendChild(wrapper);
+
+        // For modal in embedded mode, add backdrop inside wrapper
+        if (isModal) {
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'center';
+            const backdrop = document.createElement('div');
+            backdrop.style.cssText = `position:absolute;inset:0;background:${design.colors?.overlay || 'rgba(0,0,0,0.5)'};`;
+            wrapper.appendChild(backdrop);
+        }
+
+        const embeddedContainer = document.createElement('div');
+        embeddedContainer.style.cssText = isModal ? 'position:relative;z-index:1;' : '';
+        wrapper.appendChild(embeddedContainer);
+
+        renderPopup(config, embeddedContainer, () => {
+            wrapper.remove();
+        }, activeBranding, true);  // isEmbedded = true
+
+        return { cleanup: () => wrapper.remove() };
+    }
+
+    // === FULLSCREEN MODE: Original behavior ===
     // Determine if banner should be fixed or inline (only for top_bar)
     const isFixed = isTopBar ? design.fixed !== false : true;
 
     const { host, container } = createPopupHost(isFixed, isModal);
-
-    // Use provided branding or fall back to global
-    const activeBranding = branding || globalBranding;
 
     // Record that popup was shown (only if rules.frequency exists - legacy format)
     if (config.id && config.rules?.frequency) {
