@@ -312,34 +312,20 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                     {buttons.slice(0, 3).map((btn, i) => renderButton(btn, i))}
                 </div>
 
-                {renderCloseButton()}
-
-                {/* Watermark badge for banner - floating bottom right */}
+                {/* Watermark for banner - centered below content */}
                 {design.showWatermark && (
-                    <a
-                        href="https://toggleup.io"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Powered by ToggleUp.io"
-                        class="popup-watermark-badge"
-                        style={{
-                            position: 'absolute',
-                            bottom: '4px',
-                            right: '4px',
-                            fontSize: '8px',
-                            fontWeight: '600',
-                            padding: '2px 5px',
-                            borderRadius: '3px',
-                            backgroundColor: 'rgba(0,0,0,0.08)',
-                            color: style.textColor || '#666',
-                            textDecoration: 'none',
-                            opacity: 0.6,
-                            transition: 'opacity 150ms ease'
-                        }}
-                    >
-                        TU
-                    </a>
+                    <div style={{
+                        width: '100%',
+                        textAlign: 'center',
+                        paddingBottom: '6px',
+                        fontSize: '9px',
+                        opacity: 0.4
+                    }}>
+                        Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>ToggleUp.io</a>
+                    </div>
                 )}
+
+                {renderCloseButton()}
             </div>
         );
     };
