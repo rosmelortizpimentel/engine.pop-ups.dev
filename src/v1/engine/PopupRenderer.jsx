@@ -310,6 +310,17 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
 
                     {/* Buttons (max 3) */}
                     {buttons.slice(0, 3).map((btn, i) => renderButton(btn, i))}
+
+                    {/* Watermark for banner */}
+                    {design.showWatermark && (
+                        <span class="popup-watermark banner" style={{
+                            fontSize: '9px',
+                            opacity: 0.4,
+                            marginLeft: '8px'
+                        }}>
+                            Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>ToggleUp.io</a>
+                        </span>
+                    )}
                 </div>
 
                 {renderCloseButton()}
@@ -574,7 +585,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                             fontSize: '11px',
                             opacity: 0.5
                         }}>
-                            Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Toggleup</a>
+                            Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>ToggleUp.io</a>
                         </div>
                     )}
                 </div>
