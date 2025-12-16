@@ -580,10 +580,11 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             );
         };
 
-        // Background image mode - subtle watermark style (very low opacity, no dark overlay)
+        // Background image mode - subtle watermark style with configured height
+        const bgHeight = content.image?.height || '200px';
         const backgroundStyle = imagePosition === 'background' && content.image?.url ? {
             backgroundImage: `url(${content.image.url})`,
-            backgroundSize: 'contain',
+            backgroundSize: `auto ${bgHeight}`, // respect configured height
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             position: 'relative'
@@ -596,7 +597,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                 <div style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: (style.backgroundColor || '#ffffff') + '80', // 50% opacity for visible watermark
+                    backgroundColor: (style.backgroundColor || '#ffffff') + '40', // 25% opacity for more visible watermark
                     zIndex: 0,
                     borderRadius: style.borderRadius || '16px'
                 }} />
