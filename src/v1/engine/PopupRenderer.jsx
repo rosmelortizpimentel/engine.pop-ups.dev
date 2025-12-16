@@ -588,15 +588,16 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             position: 'relative'
         } : {};
 
-        // Watermark overlay (very subtle, light)
+        // Watermark overlay (subtle, semi-transparent to show image behind)
         const renderWatermarkOverlay = () => {
             if (imagePosition !== 'background' || !content.image?.url) return null;
             return (
                 <div style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundColor: style.backgroundColor || 'rgba(255,255,255,0.85)',
-                    zIndex: 0
+                    backgroundColor: (style.backgroundColor || '#ffffff') + 'E8', // 92% opacity
+                    zIndex: 0,
+                    borderRadius: style.borderRadius || '16px'
                 }} />
             );
         };
