@@ -384,14 +384,15 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             } else if (imagePosition === 'background') {
                 return null; // Handled separately
             } else {
-                // left/right
-                imageStyle.width = content.image.width || '40%';
-                imageStyle.height = '100%';
-                imageStyle.minHeight = '250px';
-                imageStyle.objectFit = content.image.objectFit || 'cover';
-                imageStyle.borderRadius = imagePosition === 'left'
-                    ? `${style.borderRadius || '16px'} 0 0 ${style.borderRadius || '16px'}`
-                    : `0 ${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0`;
+                // left/right - respect configured height, never upscale
+                const configuredHeight = content.image.height || '200px';
+                imageStyle.width = 'auto';
+                imageStyle.maxWidth = content.image.width || '40%';
+                imageStyle.height = 'auto';
+                imageStyle.maxHeight = configuredHeight;
+                imageStyle.objectFit = 'contain';
+                imageStyle.alignSelf = 'center';
+                imageStyle.borderRadius = style.borderRadius || '8px';
             }
 
             return (
@@ -574,19 +575,34 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             );
         };
 
-        // Background image mode
+        // Background image mode - subtle watermark style (very low opacity, no dark overlay)
         const backgroundStyle = imagePosition === 'background' && content.image?.url ? {
-            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${content.image.url})`,
-            backgroundSize: 'cover',
+            backgroundImage: `url(${content.image.url})`,
+            backgroundSize: 'contain',
             backgroundPosition: 'center',
-            color: '#ffffff'
+            backgroundRepeat: 'no-repeat',
+            position: 'relative'
         } : {};
+
+        // Watermark overlay (very subtle, light)
+        const renderWatermarkOverlay = () => {
+            if (imagePosition !== 'background' || !content.image?.url) return null;
+            return (
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: style.backgroundColor || 'rgba(255,255,255,0.85)',
+                    zIndex: 0
+                }} />
+            );
+        };
 
         return (
             <div class="popup-container modal" style={{ ...containerStyle, ...backgroundStyle }} role="dialog" aria-modal="true">
+                {renderWatermarkOverlay()}
                 {renderCloseButton()}
 
-                <div style={contentLayoutStyle}>
+                <div style={{ ...contentLayoutStyle, position: 'relative', zIndex: 1 }}>
                     {imagePosition !== 'background' && renderHeroImage()}
                     {renderTextContent()}
                 </div>
