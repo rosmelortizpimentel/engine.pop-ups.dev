@@ -253,19 +253,23 @@ async function fetchPopupConfigs(apiKey) {
  * @param {boolean} isFixed - If false, insert at body start as inline element
  * @param {boolean} isModal - If true, create fullscreen overlay host for modal
  */
-function createPopupHost(isFixed = true, isModal = false) {
+function createPopupHost(isFixed = true, isModal = false, position = 'top') {
     const host = document.createElement('div');
     host.id = 'toggleup-host';
 
     if (!isFixed) {
-        // Inline mode: insert at very beginning of body, flows with content
+        // Inline mode: insert at very beginning or end of body, flows with content
         host.style.cssText = `
             position: relative;
             display: block;
             width: 100%;
             z-index: 2147483647;
         `;
-        document.body.insertBefore(host, document.body.firstChild);
+        if (position === 'bottom') {
+            document.body.appendChild(host);
+        } else {
+            document.body.insertBefore(host, document.body.firstChild);
+        }
     } else if (isModal) {
         // Modal mode: fullscreen fixed overlay
         host.style.cssText = `
@@ -406,8 +410,9 @@ async function showPopup(config, options = {}) {
     // === FULLSCREEN MODE: Original behavior ===
     // Determine if banner should be fixed or inline (only for top_bar)
     const isFixed = isTopBar ? design.fixed !== false : true;
+    const position = design.position || 'top';
 
-    const { host, container } = createPopupHost(isFixed, isModal);
+    const { host, container } = createPopupHost(isFixed, isModal, position);
 
     // Record that popup was shown (only if rules.frequency exists - legacy format)
     if (config.id && config.rules?.frequency) {

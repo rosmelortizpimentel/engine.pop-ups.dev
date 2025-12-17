@@ -250,8 +250,9 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
             boxSizing: 'border-box',
             // Fixed: stays at viewport edge. Inline: flows with document
-            position: isPreview ? 'relative' : (isFixed ? 'fixed' : 'relative'),
-            ...(isFixed ? { [position]: 0 } : {}),
+            // Preview: using absolute ensures it sticks to top/bottom of the relative container
+            position: isPreview ? 'absolute' : (isFixed ? 'fixed' : 'relative'),
+            ...(isFixed || isPreview ? { [position]: 0 } : {}),
             left: 0,
             right: 0,
             width: design.width || '100%',
