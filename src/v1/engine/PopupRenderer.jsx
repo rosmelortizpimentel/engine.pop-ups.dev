@@ -167,7 +167,10 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: style.closeIconColor || '#999999',
+                    // For top_bar: use headline color to match title. For modal: use configured or default gray.
+                    color: isTopBar
+                        ? (content.headline.style?.color || style.textColor || '#ffffff')
+                        : (style.closeIconColor || '#999999'),
                     borderRadius: '50%',
                     transition: 'background-color 150ms ease',
                     zIndex: 10
@@ -318,8 +321,9 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                         width: '100%',
                         textAlign: 'center',
                         paddingBottom: '6px',
-                        fontSize: '9px',
-                        opacity: 0.4
+                        fontSize: '8px',
+                        color: content.headline.style?.color || style.textColor || '#1a1a1a',
+                        opacity: 0.5
                     }}>
                         Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>ToggleUp.io</a>
                     </div>
@@ -584,7 +588,8 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                             marginTop: '16px',
                             paddingTop: '12px',
                             borderTop: '1px solid rgba(0,0,0,0.08)',
-                            fontSize: '11px',
+                            fontSize: '10px',
+                            color: content.headline.style?.color || style.textColor || '#1a1a1a',
                             opacity: 0.5
                         }}>
                             Powered by <a href="https://toggleup.io" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>ToggleUp.io</a>

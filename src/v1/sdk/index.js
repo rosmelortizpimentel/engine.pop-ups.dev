@@ -80,6 +80,105 @@ const MOCK_POPUP_CONFIG = {
 };
 
 // ============================================
+// Font Loading Utilities
+// ============================================
+
+/**
+ * Check if a font is available in the browser
+ * Uses CSS Font Loading API with fallback
+ */
+function isFontAvailable(fontFamily) {
+    if (!fontFamily) return true;
+
+    // Normalize font name (remove quotes if present)
+    const normalizedFont = fontFamily.replace(/['"]/g, '').split(',')[0].trim();
+
+    // Use CSS Font Loading API if available
+    if (document.fonts && typeof document.fonts.check === 'function') {
+        try {
+            return document.fonts.check(`16px "${normalizedFont}"`);
+        } catch (e) {
+            // Fallback if check fails
+            return false;
+        }
+    }
+
+    // Fallback: assume font doesn't exist (will try to load)
+    return false;
+}
+
+/**
+ * Inject Google Fonts link if not already present
+ * @returns {Promise} Resolves when font is loaded
+ */
+function loadGoogleFont(fontFamily) {
+    return new Promise((resolve) => {
+        if (!fontFamily) {
+            resolve();
+            return;
+        }
+
+        // Normalize font name
+        const normalizedFont = fontFamily.replace(/['"]/g, '').split(',')[0].trim();
+
+        // Check if already loaded in page
+        const existingLink = document.querySelector(`link[href*="family=${normalizedFont.replace(/ /g, '+')}"]`);
+        if (existingLink) {
+            resolve();
+            return;
+        }
+
+        // Create Google Fonts URL
+        const fontUrl = `https://fonts.googleapis.com/css2?family=${normalizedFont.replace(/ /g, '+')}:wght@400;500;600;700&display=swap`;
+
+        // Inject link element
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = fontUrl;
+        link.setAttribute('data-toggleup-font', normalizedFont);
+
+        link.onload = () => {
+            // Wait a bit for font to be parsed and available
+            setTimeout(resolve, 100);
+        };
+        link.onerror = () => {
+            console.warn(`[Toggleup] Failed to load font: ${normalizedFont}`);
+            resolve(); // Continue even if font fails
+        };
+
+        document.head.appendChild(link);
+    });
+}
+
+/**
+ * Load font if config requests it and font doesn't exist
+ * @param {Object} config - Popup config
+ * @returns {Promise} Resolves when ready to render
+ */
+async function loadFontIfNeeded(config) {
+    const design = config.design || config;
+    const style = design.style || {};
+
+    // Check if loadFont is explicitly enabled
+    if (!style.loadFont) {
+        return; // Don't load, use whatever is available
+    }
+
+    const fontFamily = style.fontFamily;
+    if (!fontFamily) {
+        return; // No font specified
+    }
+
+    // Check if font already exists
+    if (isFontAvailable(fontFamily)) {
+        return; // Font already available, no need to load
+    }
+
+    // Load the font
+    await loadGoogleFont(fontFamily);
+}
+
+// ============================================
 // Main SDK Logic
 // ============================================
 
@@ -259,7 +358,10 @@ function setBranding(branding) {
  *   - target: DOM element to render inside (embedded mode)
  *   - branding: Branding config (falls back to global)
  */
-function showPopup(config, options = {}) {
+async function showPopup(config, options = {}) {
+    // Load font if needed (async, waits before rendering)
+    await loadFontIfNeeded(config);
+
     // Support legacy signature: showPopup(config, branding)
     const opts = (options && typeof options === 'object' && !options.nodeType)
         ? options
