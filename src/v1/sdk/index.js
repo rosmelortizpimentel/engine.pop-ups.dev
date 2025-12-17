@@ -516,8 +516,96 @@ async function init() {
         }
     }
 
-    // Store cleanups for potential future use (e.g., SPA navigation)
+    // Store cleanups for SPA navigation
     window.__toggleupCleanups = cleanups;
+}
+
+// ============================================
+// SPA Navigation Support
+// ============================================
+
+let currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+let navigationDebounceTimer = null;
+
+/**
+ * Cleanup all active popups and triggers
+ */
+function cleanupAllPopups() {
+    try {
+        // Cleanup triggers
+        if (window.__toggleupCleanups) {
+            window.__toggleupCleanups.forEach(cleanup => {
+                try { cleanup(); } catch (e) { /* silent */ }
+            });
+            window.__toggleupCleanups = [];
+        }
+
+        // Remove popup hosts from DOM
+        document.querySelectorAll('#toggleup-host').forEach(el => {
+            try { el.remove(); } catch (e) { /* silent */ }
+        });
+    } catch (e) {
+        console.warn('[Toggleup] Cleanup error:', e.message);
+    }
+}
+
+/**
+ * Handle navigation change in SPA
+ */
+async function handleNavigation() {
+    try {
+        const newPath = window.location.pathname;
+        if (newPath === currentPath) return; // No actual change
+
+        currentPath = newPath;
+
+        // Cleanup existing popups
+        cleanupAllPopups();
+
+        // Re-fetch and process for new URL
+        await init();
+    } catch (e) {
+        console.warn('[Toggleup] Navigation handler error:', e.message);
+    }
+}
+
+/**
+ * Debounced navigation handler
+ */
+function debouncedNavigation() {
+    if (navigationDebounceTimer) {
+        clearTimeout(navigationDebounceTimer);
+    }
+    navigationDebounceTimer = setTimeout(handleNavigation, 300);
+}
+
+/**
+ * Setup listeners for SPA navigation (History API)
+ */
+function setupSPAListener() {
+    try {
+        // Save original functions
+        const originalPushState = history.pushState.bind(history);
+        const originalReplaceState = history.replaceState.bind(history);
+
+        // Patch pushState
+        history.pushState = function (...args) {
+            originalPushState(...args);
+            debouncedNavigation();
+        };
+
+        // Patch replaceState
+        history.replaceState = function (...args) {
+            originalReplaceState(...args);
+            debouncedNavigation();
+        };
+
+        // Listen for back/forward browser buttons
+        window.addEventListener('popstate', debouncedNavigation);
+    } catch (e) {
+        // If patching fails, SDK still works for initial page load
+        console.warn('[Toggleup] SPA listener setup failed:', e.message);
+    }
 }
 
 // ============================================
@@ -530,10 +618,14 @@ const isManualMode = currentScript?.hasAttribute('data-manual');
 
 if (!isManualMode) {
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            setupSPAListener();
+        });
     } else {
         // DOM already loaded
         init();
+        setupSPAListener();
     }
 }
 
