@@ -84,27 +84,20 @@ const MOCK_POPUP_CONFIG = {
 // ============================================
 
 /**
- * Check if a font is available in the browser
- * Uses CSS Font Loading API with fallback
+ * Check if a Google Font is already loaded via <link> tag
+ * We don't use document.fonts.check() because it gives false positives
+ * due to browser font substitution
  */
-function isFontAvailable(fontFamily) {
+function isGoogleFontLoaded(fontFamily) {
     if (!fontFamily) return true;
 
     // Normalize font name (remove quotes if present)
     const normalizedFont = fontFamily.replace(/['"]/g, '').split(',')[0].trim();
+    const fontParam = normalizedFont.replace(/ /g, '+');
 
-    // Use CSS Font Loading API if available
-    if (document.fonts && typeof document.fonts.check === 'function') {
-        try {
-            return document.fonts.check(`16px "${normalizedFont}"`);
-        } catch (e) {
-            // Fallback if check fails
-            return false;
-        }
-    }
-
-    // Fallback: assume font doesn't exist (will try to load)
-    return false;
+    // Check if a Google Fonts link for this font already exists
+    const existingLink = document.querySelector(`link[href*="fonts.googleapis.com"][href*="family=${fontParam}"]`);
+    return !!existingLink;
 }
 
 /**
@@ -169,8 +162,8 @@ async function loadFontIfNeeded(config) {
         return; // No font specified
     }
 
-    // Check if font already exists
-    if (isFontAvailable(fontFamily)) {
+    // Check if font already loaded via Google Fonts link
+    if (isGoogleFontLoaded(fontFamily)) {
         return; // Font already available, no need to load
     }
 
