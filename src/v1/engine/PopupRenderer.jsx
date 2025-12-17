@@ -26,7 +26,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
     // Support both new format and legacy design format
     const design = config.design || config;
     const isModal = design.type === 'modal';
-    const isTopBar = design.type === 'bar' || design.type === 'top_bar';
+    const isTopBar = design.type === 'bar';
 
     // Extract content (support both formats)
     // headline/body can be string or { text, style }
@@ -167,7 +167,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    // For top_bar: use headline color to match title. For modal: use configured or default gray.
+                    // For bar: use headline color to match title. For modal: use configured or default gray.
                     color: isTopBar
                         ? (content.headline.style?.color || style.textColor || '#ffffff')
                         : (style.closeIconColor || '#999999'),
@@ -280,15 +280,15 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
         };
 
         return (
-            <div class="popup-container top_bar" style={containerStyle} role="banner">
-                <div class="popup-content top_bar" style={contentStyle}>
+            <div class="popup-container bar" style={containerStyle} role="banner">
+                <div class="popup-content bar" style={contentStyle}>
                     {/* Image left */}
                     {imagePosition === 'left' && renderImage()}
 
                     {/* Text content */}
                     <div class="popup-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                         {content.headline.text && (
-                            <span class="popup-headline top_bar" style={{
+                            <span class="popup-headline bar" style={{
                                 fontWeight: content.headline.style?.fontWeight || '700',
                                 fontSize: content.headline.style?.fontSize || '14px',
                                 color: content.headline.style?.color || style.textColor || '#1a1a1a',
@@ -298,7 +298,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
                             </span>
                         )}
                         {content.body.text && (
-                            <span class="popup-body top_bar" style={{
+                            <span class="popup-body bar" style={{
                                 fontSize: content.body.style?.fontSize || '14px',
                                 opacity: content.body.style?.opacity !== undefined ? content.body.style.opacity : 0.9,
                                 color: content.body.style?.color || style.textColor || '#1a1a1a',

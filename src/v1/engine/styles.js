@@ -113,7 +113,7 @@ export function getAnimationStyle(type, position, isExiting = false) {
     };
   }
 
-  if (type === 'bar' || type === 'top_bar') {
+  if (type === 'bar') {
     if (position === 'top') {
       return {
         animation: isExiting
@@ -164,7 +164,7 @@ export function getContainerStyles(config, isPreview) {
     borderRadius: borderRadius,
     boxShadow: shadow,
     maxWidth: '90vw',
-    width: design.type === 'top_bar' ? '100%' : '420px'
+    width: design.type === 'bar' ? '100%' : '420px'
   };
 
   if (isPreview) {
@@ -221,7 +221,7 @@ export function getOverlayStyles(config) {
  * Content area styles
  */
 export function getContentStyles(type) {
-  if (type === 'bar' || type === 'top_bar') {
+  if (type === 'bar') {
     return {
       display: 'flex',
       alignItems: 'center',
@@ -244,9 +244,9 @@ export function getContentStyles(type) {
 export function getCloseButtonStyles(config) {
   return {
     position: 'absolute',
-    top: config.design?.type === 'top_bar' ? '50%' : '12px',
+    top: config.design?.type === 'bar' ? '50%' : '12px',
     right: '12px',
-    transform: config.design?.type === 'top_bar' ? 'translateY(-50%)' : 'none',
+    transform: config.design?.type === 'bar' ? 'translateY(-50%)' : 'none',
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
@@ -292,8 +292,8 @@ export function getButtonStyles(config) {
  */
 export function getHeadlineStyles(type) {
   return {
-    margin: type === 'top_bar' ? '0' : '0 0 12px 0',
-    fontSize: type === 'top_bar' ? '16px' : '22px',
+    margin: type === 'bar' ? '0' : '0 0 12px 0',
+    fontSize: type === 'bar' ? '16px' : '22px',
     fontWeight: '700',
     lineHeight: '1.3'
   };
@@ -304,8 +304,8 @@ export function getHeadlineStyles(type) {
  */
 export function getBodyStyles(type) {
   return {
-    margin: type === 'top_bar' ? '0' : '0 0 20px 0',
-    fontSize: type === 'top_bar' ? '14px' : '15px',
+    margin: type === 'bar' ? '0' : '0 0 20px 0',
+    fontSize: type === 'bar' ? '14px' : '15px',
     lineHeight: '1.5',
     opacity: 0.85
   };
@@ -339,8 +339,8 @@ export const responsiveStyles = `
     box-sizing: border-box;
   }
 
-  .popup-headline.top_bar,
-  .popup-body.top_bar {
+  .popup-headline.bar,
+  .popup-body.bar {
     white-space: normal !important;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -363,22 +363,22 @@ export const responsiveStyles = `
       font-size: 20px !important;
     }
     
-    .popup-content.top_bar {
+    .popup-content.bar {
       flex-wrap: wrap !important;
       justify-content: center !important;
       gap: 10px !important;
       padding: 12px 50px 12px 16px !important;
     }
     
-    .popup-headline.top_bar {
+    .popup-headline.bar {
       font-size: 13px !important;
     }
     
-    .popup-body.top_bar {
+    .popup-body.bar {
       font-size: 13px !important;
     }
     
-    .popup-btn.top_bar {
+    .popup-btn.bar {
       padding: 8px 14px !important;
       font-size: 12px !important;
     }
@@ -415,7 +415,7 @@ export const responsiveStyles = `
       min-height: 48px !important;
     }
     
-    .popup-content.top_bar {
+    .popup-content.bar {
       flex-direction: column !important;
       align-items: center !important;
       text-align: center !important;
@@ -423,17 +423,17 @@ export const responsiveStyles = `
       gap: 8px !important;
     }
     
-    .popup-headline.top_bar {
+    .popup-headline.bar {
       font-size: 14px !important;
       line-height: 1.3 !important;
     }
     
-    .popup-body.top_bar {
+    .popup-body.bar {
       font-size: 13px !important;
       line-height: 1.4 !important;
     }
     
-    .popup-btn.top_bar {
+    .popup-btn.bar {
       margin-top: 4px !important;
       padding: 10px 20px !important;
       font-size: 13px !important;
@@ -469,11 +469,11 @@ export const responsiveStyles = `
       font-size: 13px !important;
     }
     
-    .popup-headline.top_bar {
+    .popup-headline.bar {
       font-size: 13px !important;
     }
     
-    .popup-body.top_bar {
+    .popup-body.bar {
       font-size: 12px !important;
     }
   }

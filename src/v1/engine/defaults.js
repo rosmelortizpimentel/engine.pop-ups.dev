@@ -23,7 +23,7 @@ export const DEFAULT_BUTTON_STYLE = {
  * Default configuration for Top Bar (Banner) popup
  */
 export const TOP_BAR_DEFAULTS = {
-    type: 'top_bar',
+    type: 'bar',
 
     // Position & Behavior
     position: 'top',           // 'top' | 'bottom'
@@ -127,7 +127,7 @@ export function deepMerge(target, source) {
  */
 export function getDefaults(type) {
     switch (type) {
-        case 'top_bar':
+        case 'bar':
             return TOP_BAR_DEFAULTS;
         case 'modal':
             return MODAL_DEFAULTS;

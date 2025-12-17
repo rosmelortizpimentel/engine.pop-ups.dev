@@ -50,8 +50,8 @@ const MOCK_POPUP_CONFIG = {
     id: 'popup_mock_12345',
     name: 'Demo Popup',
     design: {
-        type: 'modal', // 'modal' | 'top_bar'
-        position: 'top', // Only for top_bar: 'top' | 'bottom'
+        type: 'modal', // 'modal' | 'bar'
+        position: 'top', // Only for bar: 'top' | 'bottom'
         isSticky: true,
         headline: '¡Bienvenido a nuestra tienda!',
         body: 'Suscríbete a nuestro newsletter y obtén un 10% de descuento en tu primera compra.',
@@ -370,9 +370,9 @@ async function showPopup(config, options = {}) {
     // Support both new format (flat) and legacy format (design object)
     const design = config.design || config;
 
-    // Determine popup type (support both 'bar' and legacy 'top_bar')
+    // Determine popup type
     const isModal = design.type === 'modal';
-    const isTopBar = design.type === 'bar' || design.type === 'top_bar';
+    const isTopBar = design.type === 'bar';
 
     // Use provided branding or fall back to global
     const activeBranding = branding || globalBranding;
@@ -409,7 +409,7 @@ async function showPopup(config, options = {}) {
     }
 
     // === FULLSCREEN MODE: Original behavior ===
-    // Determine if banner should be fixed or inline (only for top_bar)
+    // Determine if banner should be fixed or inline (only for bar)
     const isFixed = isTopBar ? design.fixed !== false : true;
     const position = design.position || 'top';
 
@@ -420,7 +420,7 @@ async function showPopup(config, options = {}) {
         recordPopupShown(config.id, config.rules.frequency);
     }
 
-    // For fixed top_bar with pushContent, add margin to body
+    // For fixed bar with pushContent, add margin to body
     // (Not needed for inline mode since it naturally pushes content)
     let bodyMarginCleanup = null;
     if (isFixed && isTopBar && design.pushContent !== false) {
