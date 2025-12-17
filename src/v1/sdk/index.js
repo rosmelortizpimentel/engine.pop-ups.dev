@@ -22,6 +22,7 @@ import { h, render } from 'preact';
 import { PopupRenderer } from '../engine/PopupRenderer.jsx';
 import { setupTrigger } from './triggers.js';
 import { shouldShowPopup, recordPopupShown } from './frequency.js';
+import { isDeviceAllowed } from './device.js';
 
 // ============================================
 // Capture script element immediately (before any async)
@@ -469,6 +470,11 @@ async function showPopup(config, options = {}) {
  * Process a single popup configuration
  */
 function processPopup(config) {
+    // Check device targeting first (lowest cost check)
+    if (config.rules?.deviceTargeting && !isDeviceAllowed(config.rules.deviceTargeting)) {
+        return null; // Skip this popup for this device
+    }
+
     // Check frequency cap
     if (!shouldShowPopup(config.id, config.rules.frequency)) {
         return null; // Skip this popup
