@@ -25,9 +25,18 @@ export function shouldShowPopup(popupId, frequencyConfig) {
         case 'once_per_session':
             return !hasShownThisSession(popupId);
 
-        case 'once_per_user_24h':
+        case 'once_per_day':
             return !hasShownInLast24Hours(popupId);
 
+        case 'once_per_week':
+            return !hasShownInLastWeek(popupId);
+
+        case 'once_ever':
+            return !hasEverShown(popupId);
+
+        // Legacy/Fallback support
+        case 'once_per_user_24h':
+            return !hasShownInLast24Hours(popupId);
         case 'once_lifetime':
             return !hasEverShown(popupId);
 
@@ -52,10 +61,16 @@ export function recordPopupShown(popupId, frequencyConfig) {
                 markShownThisSession(popupId);
                 break;
 
+            case 'once_per_day':
             case 'once_per_user_24h':
                 markShownWithTimestamp(popupId);
                 break;
 
+            case 'once_per_week':
+                markShownWithTimestamp(popupId);
+                break;
+
+            case 'once_ever':
             case 'once_lifetime':
                 markShownForever(popupId);
                 break;
@@ -104,9 +119,24 @@ function hasShownInLast24Hours(popupId) {
 
         const lastShownTime = parseInt(lastShown, 10);
         const now = Date.now();
-        const twentyFourHours = 24 * 60 * 60 * 1000;
+        const oneDay = 24 * 60 * 60 * 1000;
 
-        return (now - lastShownTime) < twentyFourHours;
+        return (now - lastShownTime) < oneDay;
+    } catch {
+        return false;
+    }
+}
+
+function hasShownInLastWeek(popupId) {
+    try {
+        const lastShown = localStorage.getItem(getTimestampKey(popupId));
+        if (!lastShown) return false;
+
+        const lastShownTime = parseInt(lastShown, 10);
+        const now = Date.now();
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+        return (now - lastShownTime) < oneWeek;
     } catch {
         return false;
     }
