@@ -113,7 +113,7 @@ export function getAnimationStyle(type, position, isExiting = false) {
     };
   }
 
-  if (type === 'top_bar') {
+  if (type === 'bar' || type === 'top_bar') {
     if (position === 'top') {
       return {
         animation: isExiting
@@ -221,7 +221,7 @@ export function getOverlayStyles(config) {
  * Content area styles
  */
 export function getContentStyles(type) {
-  if (type === 'top_bar') {
+  if (type === 'bar' || type === 'top_bar') {
     return {
       display: 'flex',
       alignItems: 'center',

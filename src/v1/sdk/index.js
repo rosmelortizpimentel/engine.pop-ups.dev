@@ -370,9 +370,9 @@ async function showPopup(config, options = {}) {
     // Support both new format (flat) and legacy format (design object)
     const design = config.design || config;
 
-    // Determine popup type
+    // Determine popup type (support both 'bar' and legacy 'top_bar')
     const isModal = design.type === 'modal';
-    const isTopBar = design.type === 'top_bar';
+    const isTopBar = design.type === 'bar' || design.type === 'top_bar';
 
     // Use provided branding or fall back to global
     const activeBranding = branding || globalBranding;
@@ -423,7 +423,7 @@ async function showPopup(config, options = {}) {
     // For fixed top_bar with pushContent, add margin to body
     // (Not needed for inline mode since it naturally pushes content)
     let bodyMarginCleanup = null;
-    if (isFixed && design.type === 'top_bar' && design.pushContent !== false) {
+    if (isFixed && isTopBar && design.pushContent !== false) {
         const position = design.position || 'top';
         const barHeight = '50px'; // Approximate height of top bar
 

@@ -26,7 +26,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
     // Support both new format and legacy design format
     const design = config.design || config;
     const isModal = design.type === 'modal';
-    const isTopBar = design.type === 'top_bar';
+    const isTopBar = design.type === 'bar' || design.type === 'top_bar';
 
     // Extract content (support both formats)
     // headline/body can be string or { text, style }
