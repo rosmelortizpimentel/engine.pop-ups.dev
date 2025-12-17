@@ -34,7 +34,7 @@ const CURRENT_SCRIPT = document.currentScript;
 // ============================================
 
 // Production API endpoint
-const API_BASE_URL = 'https://twuvzxjmywyenpsxwavy.supabase.co/functions/v1';
+const API_BASE_URL = 'https://api.toggleup.io/v1';
 
 // Development mock - set to false to use real API
 const USE_MOCK = false;
@@ -224,7 +224,7 @@ async function fetchPopupConfigs(apiKey) {
     try {
         const currentUrl = encodeURIComponent(window.location.pathname);
         const response = await fetch(
-            `${API_BASE_URL}/deliver-popups?api_key=${apiKey}&url=${currentUrl}`,
+            `${API_BASE_URL}/popups?api_key=${apiKey}&url=${currentUrl}`,
             {
                 method: 'GET',
                 headers: {
