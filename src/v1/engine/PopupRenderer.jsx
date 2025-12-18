@@ -348,7 +348,15 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             large: '600px',
             fullscreen: '95vw'
         };
-        const modalWidth = sizePresets[design.size] || design.width || '480px';
+
+        // Support custom width/height in pixels, or use presets
+        let modalWidth = sizePresets[design.size] || design.width || '480px';
+        let modalHeight = 'auto';
+
+        if (design.size === 'custom') {
+            modalWidth = design.customWidth ? `${design.customWidth}px` : '480px';
+            modalHeight = design.customHeight ? `${design.customHeight}px` : 'auto';
+        }
 
         const containerStyle = {
             fontFamily: style.fontFamily ? `${style.fontFamily}, ${systemFonts}` : systemFonts,
@@ -359,6 +367,7 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             left: isPreview ? undefined : '50%',
             transform: isPreview ? undefined : 'translate(-50%, -50%)',
             width: modalWidth,
+            height: modalHeight,
             maxWidth: design.maxWidth || '90vw',
             maxHeight: design.maxHeight || '85vh',
             overflow: 'auto',
@@ -385,8 +394,10 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
             if (!content.image?.url) return null;
 
             const configuredHeight = content.image.height || '200px';
+            const configuredWidth = content.image.width || 'auto';
             const customPadding = style.padding || '24px';
             const paddingNum = parseInt(customPadding) || 24;
+            const isCentered = content.image.centered === true;
 
             const imageStyle = {
                 flexShrink: 0,
@@ -395,13 +406,20 @@ export function PopupRenderer({ config: rawConfig, branding = null, onClose, isP
 
             if (imagePosition === 'top') {
                 // Centered image with max-height, maintain aspect ratio
-                imageStyle.width = 'auto';
-                imageStyle.maxWidth = `calc(100% - ${paddingNum * 2}px)`; // Use custom padding on each side
+                imageStyle.width = configuredWidth !== 'auto' ? configuredWidth : 'auto';
+                imageStyle.maxWidth = isCentered ? '100%' : `calc(100% - ${paddingNum * 2}px)`;
                 imageStyle.maxHeight = configuredHeight;
                 imageStyle.height = 'auto';
-                imageStyle.objectFit = 'contain';
-                imageStyle.margin = `${paddingNum}px auto 0 auto`; // Custom padding top, centered horizontally
-                // No borderRadius - images should not be affected by modal border radius
+                imageStyle.objectFit = isCentered ? 'cover' : 'contain';
+                imageStyle.margin = isCentered ? '0 auto' : `${paddingNum}px auto 0 auto`;
+
+                // If centered, remove padding and make image fill container
+                if (isCentered) {
+                    imageStyle.width = '100%';
+                    imageStyle.height = configuredHeight;
+                    imageStyle.objectFit = 'cover';
+                    imageStyle.borderRadius = `${style.borderRadius || '16px'} ${style.borderRadius || '16px'} 0 0`;
+                }
             } else if (imagePosition === 'background') {
                 return null; // Handled separately
             } else {
